@@ -5,4 +5,5 @@
 ```bash
 source .venv/bin/activate
 fastapi run --reload app/main.py
+fastapi dev app/main.py
 ```
