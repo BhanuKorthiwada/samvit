@@ -105,7 +105,11 @@ def test_create_tenant():
         success = response.status_code in [200, 201]
         if success:
             created_ids["tenant"] = response.json().get("id")
-        print_result("Create Tenant", success, f"Status: {response.status_code}, Body: {response.text[:200]}")
+        print_result(
+            "Create Tenant",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
         return success
     except Exception as e:
         print_result("Create Tenant", False, str(e))
@@ -149,7 +153,11 @@ def test_register_user():
             result = response.json()
             created_ids["user"] = result.get("user", {}).get("id")
             auth_token = result.get("access_token")
-        print_result("Register User", success, f"Status: {response.status_code}, Body: {response.text[:200]}")
+        print_result(
+            "Register User",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
         return success
     except Exception as e:
         print_result("Register User", False, str(e))
@@ -214,7 +222,11 @@ def test_create_department():
         success = response.status_code in [200, 201]
         if success:
             created_ids["department"] = response.json().get("id")
-        print_result("Create Department", success, f"Status: {response.status_code}, Body: {response.text[:200]}")
+        print_result(
+            "Create Department",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
         return success
     except Exception as e:
         print_result("Create Department", False, str(e))
@@ -257,7 +269,11 @@ def test_create_position():
         success = response.status_code in [200, 201]
         if success:
             created_ids["position"] = response.json().get("id")
-        print_result("Create Position", success, f"Status: {response.status_code}, Body: {response.text[:200]}")
+        print_result(
+            "Create Position",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
         return success
     except Exception as e:
         print_result("Create Position", False, str(e))
@@ -306,7 +322,11 @@ def test_create_employee():
         success = response.status_code in [200, 201]
         if success:
             created_ids["employee"] = response.json().get("id")
-        print_result("Create Employee", success, f"Status: {response.status_code}, Body: {response.text[:200]}")
+        print_result(
+            "Create Employee",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
         return success
     except Exception as e:
         print_result("Create Employee", False, str(e))
@@ -350,7 +370,11 @@ def test_create_shift():
         success = response.status_code in [200, 201]
         if success:
             created_ids["shift"] = response.json().get("id")
-        print_result("Create Shift", success, f"Status: {response.status_code}, Body: {response.text[:200]}")
+        print_result(
+            "Create Shift",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
         return success
     except Exception as e:
         print_result("Create Shift", False, str(e))
@@ -389,7 +413,11 @@ def test_clock_in():
         )
         # Accept various status codes since employee might not exist in DB
         success = response.status_code in [200, 201, 404, 422]
-        print_result("Clock In", success, f"Status: {response.status_code}, Body: {response.text[:200]}")
+        print_result(
+            "Clock In",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
         return success
     except Exception as e:
         print_result("Clock In", False, str(e))
@@ -418,7 +446,11 @@ def test_create_leave_policy():
         success = response.status_code in [200, 201]
         if success:
             created_ids["leave_policy"] = response.json().get("id")
-        print_result("Create Leave Policy", success, f"Status: {response.status_code}, Body: {response.text[:200]}")
+        print_result(
+            "Create Leave Policy",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
         return success
     except Exception as e:
         print_result("Create Leave Policy", False, str(e))
@@ -456,7 +488,11 @@ def test_create_holiday():
             timeout=10,
         )
         success = response.status_code in [200, 201]
-        print_result("Create Holiday", success, f"Status: {response.status_code}, Body: {response.text[:200]}")
+        print_result(
+            "Create Holiday",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
         return success
     except Exception as e:
         print_result("Create Holiday", False, str(e))
@@ -500,7 +536,11 @@ def test_create_salary_component():
         success = response.status_code in [200, 201]
         if success:
             created_ids["salary_component"] = response.json().get("id")
-        print_result("Create Salary Component", success, f"Status: {response.status_code}, Body: {response.text[:200]}")
+        print_result(
+            "Create Salary Component",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
         return success
     except Exception as e:
         print_result("Create Salary Component", False, str(e))
@@ -516,7 +556,9 @@ def test_list_salary_components():
             timeout=10,
         )
         success = response.status_code == 200
-        print_result("List Salary Components", success, f"Status: {response.status_code}")
+        print_result(
+            "List Salary Components", success, f"Status: {response.status_code}"
+        )
         return success
     except Exception as e:
         print_result("List Salary Components", False, str(e))
@@ -542,7 +584,11 @@ def test_create_salary_structure():
         success = response.status_code in [200, 201]
         if success:
             created_ids["salary_structure"] = response.json().get("id")
-        print_result("Create Salary Structure", success, f"Status: {response.status_code}, Body: {response.text[:200]}")
+        print_result(
+            "Create Salary Structure",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
         return success
     except Exception as e:
         print_result("Create Salary Structure", False, str(e))
@@ -558,7 +604,9 @@ def test_list_salary_structures():
             timeout=10,
         )
         success = response.status_code == 200
-        print_result("List Salary Structures", success, f"Status: {response.status_code}")
+        print_result(
+            "List Salary Structures", success, f"Status: {response.status_code}"
+        )
         return success
     except Exception as e:
         print_result("List Salary Structures", False, str(e))
@@ -585,7 +633,11 @@ def test_create_payroll_period():
         success = response.status_code in [200, 201]
         if success:
             created_ids["payroll_period"] = response.json().get("id")
-        print_result("Create Payroll Period", success, f"Status: {response.status_code}, Body: {response.text[:200]}")
+        print_result(
+            "Create Payroll Period",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
         return success
     except Exception as e:
         print_result("Create Payroll Period", False, str(e))
@@ -621,7 +673,11 @@ def test_ai_chat():
             timeout=30,
         )
         success = response.status_code in [200, 201]
-        print_result("AI Chat", success, f"Status: {response.status_code}, Body: {response.text[:200]}")
+        print_result(
+            "AI Chat",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
         return success
     except Exception as e:
         print_result("AI Chat", False, str(e))
@@ -705,7 +761,7 @@ def run_all_tests():
     failed = sum(1 for _, success in results if not success)
     total = len(results)
     print(f"Total: {total} | Passed: {passed} | Failed: {failed}")
-    print(f"Success Rate: {(passed/total)*100:.1f}%")
+    print(f"Success Rate: {(passed / total) * 100:.1f}%")
     print()
 
     if failed > 0:
