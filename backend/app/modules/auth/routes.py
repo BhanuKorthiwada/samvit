@@ -12,6 +12,7 @@ from app.modules.auth.schemas import (
     LoginRequest,
     RefreshTokenRequest,
     RegisterRequest,
+    RegisterResponse,
     TokenResponse,
     UserCreate,
     UserResponse,
@@ -34,18 +35,40 @@ def get_auth_service(
 
 @router.post(
     "/register",
-    response_model=UserResponse,
+    response_model=RegisterResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register new user",
 )
 async def register(
     data: RegisterRequest,
     service: AuthService = Depends(get_auth_service),
-) -> UserResponse:
-    """Register a new user account."""
+) -> RegisterResponse:
+    """Register a new user account and return tokens."""
     try:
-        user = await service.register(data)
-        return UserResponse.model_validate(user)
+        user, tokens = await service.register_with_tokens(data)
+        # Build response manually to avoid lazy loading issues
+        user_response = UserResponse(
+            id=user.id,
+            tenant_id=user.tenant_id,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            phone=user.phone,
+            avatar_url=user.avatar_url,
+            status=user.status,
+            is_active=user.is_active,
+            email_verified=user.email_verified,
+            employee_id=user.employee_id,
+            roles=[],
+        )
+        return RegisterResponse(
+            user=user_response,
+            access_token=tokens.access_token,
+            refresh_token=tokens.refresh_token,
+            expires_in=tokens.expires_in,
+        )
     except EntityAlreadyExistsError as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

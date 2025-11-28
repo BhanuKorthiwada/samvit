@@ -10,11 +10,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
 
 # Import all routers
 from app.ai.agents.router import router as ai_router
 from app.core.config import settings
-from app.core.database import engine
+from app.core.database import AsyncSessionLocal, engine, init_db
 from app.core.exceptions import (
     AuthenticationError,
     AuthorizationError,
@@ -23,6 +24,8 @@ from app.core.exceptions import (
     SamvitException,
     ValidationError,
 )
+from app.core.logging import get_logger, setup_logging
+from app.core.middleware import RequestIDMiddleware
 from app.core.tenancy import TenantMiddleware
 from app.modules.attendance.routes import router as attendance_router
 from app.modules.auth.routes import router as auth_router
@@ -35,13 +38,22 @@ from app.modules.leave.routes import router as leave_router
 from app.modules.payroll.routes import router as payroll_router
 from app.modules.tenants.routes import router as tenants_router
 
+# Setup logging
+setup_logging()
+logger = get_logger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncGenerator:
     """Application lifespan handler."""
     # Startup
+    logger.info(f"Starting {settings.app_name} v{settings.app_version}")
+    logger.info(f"Environment: {settings.environment}, Debug: {settings.debug}")
+    await init_db()
+    logger.info("Database initialized")
     yield
     # Shutdown
+    logger.info("Shutting down application")
     await engine.dispose()
 
 
@@ -85,9 +97,13 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["X-Request-ID", "X-Response-Time"],
 )
+
+# --- Request ID Middleware (for tracing) ---
+app.add_middleware(RequestIDMiddleware)
 
 # --- Tenant Middleware ---
 app.add_middleware(TenantMiddleware)
@@ -169,6 +185,27 @@ async def samvit_exception_handler(
     )
 
 
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    """Handle unhandled exceptions with proper logging."""
+    request_id = getattr(request.state, "request_id", "N/A")
+    logger.exception(
+        f"Unhandled exception: {exc}",
+        extra={"request_id": request_id},
+    )
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "detail": "Internal server error",
+            "code": "INTERNAL_ERROR",
+            "request_id": request_id,
+        },
+    )
+
+
 # --- API Routers ---
 API_V1_PREFIX = "/api/v1"
 
@@ -188,11 +225,34 @@ app.include_router(ai_router, prefix=API_V1_PREFIX)
 
 @app.get("/health", tags=["Health"])
 async def health_check() -> dict:
-    """Health check endpoint."""
+    """Health check endpoint with database connectivity verification."""
+    db_status = "healthy"
+    db_latency_ms: float | None = None
+
+    try:
+        import time
+
+        start = time.perf_counter()
+        async with AsyncSessionLocal() as session:
+            await session.execute(text("SELECT 1"))
+        db_latency_ms = (time.perf_counter() - start) * 1000
+    except Exception as e:
+        db_status = "unhealthy"
+        logger.error(f"Database health check failed: {e}")
+
+    overall_status = "healthy" if db_status == "healthy" else "degraded"
+
     return {
-        "status": "healthy",
+        "status": overall_status,
         "app": settings.app_name,
         "version": settings.app_version,
+        "environment": settings.environment,
+        "checks": {
+            "database": {
+                "status": db_status,
+                "latency_ms": round(db_latency_ms, 2) if db_latency_ms else None,
+            }
+        },
     }
 
 

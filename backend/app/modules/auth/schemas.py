@@ -85,6 +85,16 @@ class RefreshTokenRequest(BaseSchema):
     refresh_token: str
 
 
+class RegisterResponse(BaseSchema):
+    """Registration response with user and tokens."""
+
+    user: "UserResponse"
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
+
+
 # --- User Schemas ---
 
 

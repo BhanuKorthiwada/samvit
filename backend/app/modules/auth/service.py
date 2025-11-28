@@ -50,7 +50,8 @@ class AuthService:
             first_name=data.first_name,
             last_name=data.last_name,
             phone=data.phone,
-            status=UserStatus.PENDING.value,
+            status=UserStatus.ACTIVE.value,  # Set to ACTIVE for testing
+            is_active=True,
         )
 
         self.session.add(user)
@@ -58,6 +59,30 @@ class AuthService:
         await self.session.refresh(user)
 
         return user
+
+    async def register_with_tokens(
+        self, data: RegisterRequest
+    ) -> tuple[User, TokenResponse]:
+        """Register a new user and return tokens."""
+        user = await self.register(data)
+
+        # Create tokens
+        token_data = {
+            "sub": user.id,
+            "email": user.email,
+            "tenant_id": user.tenant_id,
+        }
+
+        access_token = create_access_token(token_data)
+        refresh_token = create_refresh_token(token_data)
+
+        tokens = TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_in=settings.access_token_expire_minutes * 60,
+        )
+
+        return user, tokens
 
     async def login(self, data: LoginRequest) -> TokenResponse:
         """Authenticate user and return tokens."""

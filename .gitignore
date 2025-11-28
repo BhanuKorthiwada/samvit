@@ -365,3 +365,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Database files
+*.db
+*.db-journal

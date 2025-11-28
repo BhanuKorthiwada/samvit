@@ -2,13 +2,25 @@
 
 AI-powered multi-tenant Human Resource Management System built with FastAPI.
 
+## Features
+
+- 🏢 **Multi-Tenancy** - Row-level security with tenant isolation
+- 🔐 **JWT Authentication** - Secure auth with access & refresh tokens
+- 👥 **Employee Management** - Departments, positions, employee records
+- ⏰ **Attendance Tracking** - Clock in/out, shifts, attendance reports
+- 🏖️ **Leave Management** - Policies, requests, balances, holidays
+- 💰 **Payroll Processing** - Salary structures, components, payslips
+- 🤖 **AI Assistant** - Conversational HR assistant powered by LangGraph
+- 📊 **Structured Logging** - JSON logging with request tracing
+- 🔍 **Health Monitoring** - Database connectivity checks
+
 ## Architecture
 
 **Modular Monolith** with Clean Architecture principles:
 
 ```
 app/
-├── core/           # Infrastructure (config, database, security, tenancy)
+├── core/           # Infrastructure (config, database, security, logging, middleware)
 ├── shared/         # Reusable base models, schemas, repositories
 ├── modules/        # Business domain modules
 │   ├── tenants/    # Multi-tenant organization management
@@ -23,14 +35,15 @@ app/
 
 ## Tech Stack
 
-- **Python 3.13+**
-- **FastAPI** - Web framework
-- **SQLAlchemy 2.0** - Async ORM
-- **Pydantic v2** - Data validation
-- **Alembic** - Database migrations
-- **PostgreSQL** - Database (via asyncpg)
-- **JWT** - Authentication
-- **LangGraph / Pydantic AI** - AI agents
+- **Python 3.13+** - Latest Python features
+- **FastAPI** - High-performance async web framework
+- **SQLAlchemy 2.0** - Async ORM with type hints
+- **Pydantic v2** - Fast data validation
+- **Alembic** - Database migrations with autogenerate
+- **PostgreSQL/SQLite** - Production/development databases
+- **bcrypt** - Secure password hashing
+- **python-jose** - JWT token handling
+- **LangGraph / Pydantic AI** - AI agent frameworks
 
 ## Quick Start
 
@@ -50,10 +63,23 @@ uv sync
 # Copy example env file
 cp .env.example .env
 
-# Required environment variables:
-DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/samvit
-SECRET_KEY=your-secret-key-here
+# Edit .env with your settings
 ```
+
+**Environment Variables:**
+
+| Variable | Description | Default |
+|----------|-------------|--------|
+| `DATABASE_URL` | Database connection string | `sqlite+aiosqlite:///./samvit.db` |
+| `SECRET_KEY` | JWT signing key (min 32 chars) | Required in production |
+| `ENVIRONMENT` | `development`, `staging`, `production` | `development` |
+| `DEBUG` | Enable debug mode | `false` |
+| `LOG_LEVEL` | `DEBUG`, `INFO`, `WARNING`, `ERROR` | `INFO` |
+| `LOG_FORMAT` | `json` or `text` | `text` |
+| `CORS_ORIGINS` | Allowed CORS origins | `["http://localhost:3010"]` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | JWT access token expiry | `30` |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | JWT refresh token expiry | `7` |
+| `BCRYPT_ROUNDS` | Password hashing rounds | `12` |
 
 ### 3. Run Migrations
 
@@ -124,8 +150,14 @@ curl -H "X-Tenant-ID: tenant-uuid" \
 ### Run Tests
 
 ```bash
+# Run all tests
 uv run pytest
+
+# Run with coverage
 uv run pytest --cov=app
+
+# Run with coverage report
+uv run pytest --cov=app --cov-report=html
 ```
 
 ### Code Quality
@@ -133,6 +165,7 @@ uv run pytest --cov=app
 ```bash
 # Linting
 uv run ruff check .
+uv run ruff check . --fix  # Auto-fix
 
 # Formatting
 uv run ruff format .
@@ -144,7 +177,14 @@ uv run mypy app/
 ### Create Migration
 
 ```bash
+# Auto-generate migration from model changes
 uv run alembic revision --autogenerate -m "description"
+
+# Apply migrations
+uv run alembic upgrade head
+
+# Rollback one migration
+uv run alembic downgrade -1
 ```
 
 ## Project Structure
@@ -157,16 +197,41 @@ Each module follows the same pattern:
 - `routes.py` - API endpoints
 - `__init__.py` - Module exports
 
-## Environment Variables
+## Health Check
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql+asyncpg://...` |
-| `SECRET_KEY` | JWT signing key | Required |
-| `DEBUG` | Enable debug mode | `false` |
-| `ENVIRONMENT` | `development`, `staging`, `production` | `development` |
-| `CORS_ORIGINS` | Allowed CORS origins | `["http://localhost:3000"]` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | JWT token expiry | `30` |
+The `/health` endpoint provides application and database status:
+
+```bash
+curl http://localhost:8000/health
+```
+
+Response:
+```json
+{
+  "status": "healthy",
+  "app": "SAMVIT",
+  "version": "0.1.0",
+  "environment": "development",
+  "checks": {
+    "database": {
+      "status": "healthy",
+      "latency_ms": 1.23
+    }
+  }
+}
+```
+
+## Request Tracing
+
+All requests are traced with `X-Request-ID` header. Pass your own or let the server generate one:
+
+```bash
+curl -H "X-Request-ID: my-trace-id" http://localhost:8000/api/v1/employees
+```
+
+The response will include:
+- `X-Request-ID` - The trace ID
+- `X-Response-Time` - Request duration in ms
 
 ## License
 
