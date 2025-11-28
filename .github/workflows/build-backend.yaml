@@ -23,6 +23,8 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -51,6 +53,8 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
