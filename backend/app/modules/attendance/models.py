@@ -3,7 +3,16 @@
 from datetime import date, datetime, time
 from enum import Enum
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, Numeric, String, Time
+from sqlalchemy import (
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Time,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.shared.models import TenantBaseModel
@@ -62,7 +71,9 @@ class TimeEntry(TenantBaseModel):
     )
     entry_type: Mapped[str] = mapped_column(String(20), nullable=False)
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    source: Mapped[str] = mapped_column(String(50), default="web")  # web, mobile, biometric
+    source: Mapped[str] = mapped_column(
+        String(50), default="web"
+    )  # web, mobile, biometric
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
     notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -96,8 +107,12 @@ class Attendance(TenantBaseModel):
     )
 
     # Actual times
-    clock_in: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    clock_out: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    clock_in: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    clock_out: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Calculated fields
     work_hours: Mapped[float | None] = mapped_column(Numeric(5, 2), nullable=True)
@@ -110,7 +125,9 @@ class Attendance(TenantBaseModel):
     is_late: Mapped[bool] = mapped_column(Boolean, default=False)
     is_early_leave: Mapped[bool] = mapped_column(Boolean, default=False)
     is_regularized: Mapped[bool] = mapped_column(Boolean, default=False)
-    regularization_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    regularization_reason: Mapped[str | None] = mapped_column(
+        String(500), nullable=True
+    )
 
     # Relationships
     shift: Mapped[Shift | None] = relationship("Shift")

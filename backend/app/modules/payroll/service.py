@@ -10,10 +10,10 @@ from app.core.exceptions import BusinessRuleViolationError, EntityNotFoundError
 from app.modules.payroll.models import (
     EmployeeSalary,
     EmployeeSalaryComponent,
-    Payslip,
-    PayslipItem,
     PayrollPeriod,
     PayrollStatus,
+    Payslip,
+    PayslipItem,
     SalaryComponent,
     SalaryStructure,
 )
@@ -245,9 +245,7 @@ class PayrollService:
 
     async def list_periods(self, year: int | None = None) -> list[PayrollPeriod]:
         """List payroll periods."""
-        query = select(PayrollPeriod).where(
-            PayrollPeriod.tenant_id == self.tenant_id
-        )
+        query = select(PayrollPeriod).where(PayrollPeriod.tenant_id == self.tenant_id)
         if year:
             query = query.where(PayrollPeriod.year == year)
         query = query.order_by(PayrollPeriod.year.desc(), PayrollPeriod.month.desc())

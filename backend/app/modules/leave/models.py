@@ -102,7 +102,12 @@ class LeaveBalance(TenantBaseModel):
     @property
     def available(self) -> float:
         """Calculate available balance."""
-        return float(self.opening_balance) + float(self.credited) - float(self.used) - float(self.pending)
+        return (
+            float(self.opening_balance)
+            + float(self.credited)
+            - float(self.used)
+            - float(self.pending)
+        )
 
     def __repr__(self) -> str:
         return f"<LeaveBalance {self.employee_id} {self.year}: {self.available}>"
@@ -150,7 +155,9 @@ class LeaveRequest(TenantBaseModel):
     policy: Mapped[LeavePolicy] = relationship("LeavePolicy")
 
     def __repr__(self) -> str:
-        return f"<LeaveRequest {self.employee_id}: {self.start_date} to {self.end_date}>"
+        return (
+            f"<LeaveRequest {self.employee_id}: {self.start_date} to {self.end_date}>"
+        )
 
 
 class Holiday(TenantBaseModel):

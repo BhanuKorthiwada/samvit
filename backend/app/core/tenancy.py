@@ -73,7 +73,7 @@ async def get_tenant_from_header(
 ) -> TenantContext:
     """
     Extract tenant ID from request header.
-    
+
     In production, this would also validate the tenant exists
     and the user has access to it.
     """

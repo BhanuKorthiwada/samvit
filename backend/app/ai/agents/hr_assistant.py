@@ -1,10 +1,7 @@
 """HR Assistant Agent implementation."""
 
-from typing import Any
-
-from app.ai.agents.base import AgentContext, AgentResponse, ChatMessage, MessageRole
+from app.ai.agents.base import AgentContext, AgentResponse
 from app.ai.agents.tools import AgentTools
-
 
 # System prompt for HR Assistant
 HR_ASSISTANT_SYSTEM_PROMPT = """You are a helpful HR Assistant for an HRMS (Human Resource Management System).
@@ -53,10 +50,16 @@ class HRAssistantAgent:
         message_lower = user_message.lower()
 
         # Simple intent detection (would use LLM in production)
-        if any(word in message_lower for word in ["leave balance", "leave left", "remaining leave"]):
+        if any(
+            word in message_lower
+            for word in ["leave balance", "leave left", "remaining leave"]
+        ):
             return await self._handle_leave_balance()
 
-        elif any(word in message_lower for word in ["apply leave", "take leave", "request leave"]):
+        elif any(
+            word in message_lower
+            for word in ["apply leave", "take leave", "request leave"]
+        ):
             return await self._handle_leave_application_prompt()
 
         elif any(word in message_lower for word in ["attendance", "present", "absent"]):
@@ -68,7 +71,10 @@ class HRAssistantAgent:
         elif any(word in message_lower for word in ["holiday", "holidays", "off days"]):
             return await self._handle_holidays()
 
-        elif any(word in message_lower for word in ["who is on leave", "team leave", "on leave today"]):
+        elif any(
+            word in message_lower
+            for word in ["who is on leave", "team leave", "on leave today"]
+        ):
             return await self._handle_team_leave()
 
         else:
@@ -189,7 +195,9 @@ class HRAssistantAgent:
 
         for holiday in result["holidays"]:
             optional_tag = " *(Optional)*" if holiday["is_optional"] else ""
-            message_parts.append(f"• **{holiday['name']}** - {holiday['date']}{optional_tag}")
+            message_parts.append(
+                f"• **{holiday['name']}** - {holiday['date']}{optional_tag}"
+            )
 
         return AgentResponse(
             message="\n".join(message_parts),
@@ -207,7 +215,9 @@ class HRAssistantAgent:
         if result["count"] == 0:
             message = f"No team members are on leave on {result['date']}."
         else:
-            message = f"{result['count']} team member(s) are on leave on {result['date']}."
+            message = (
+                f"{result['count']} team member(s) are on leave on {result['date']}."
+            )
 
         return AgentResponse(
             message=message,

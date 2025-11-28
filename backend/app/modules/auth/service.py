@@ -1,7 +1,6 @@
 """Auth service - authentication and user management."""
 
 import json
-from datetime import timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +19,7 @@ from app.core.security import (
     get_password_hash,
     verify_password,
 )
-from app.modules.auth.models import Role, User, UserStatus
+from app.modules.auth.models import User, UserStatus
 from app.modules.auth.schemas import (
     LoginRequest,
     RegisterRequest,
@@ -230,7 +229,5 @@ class AuthService:
 
     async def _get_user_by_email(self, email: str) -> User | None:
         """Get user by email within tenant."""
-        result = await self.session.execute(
-            select(User).where(User.email == email)
-        )
+        result = await self.session.execute(select(User).where(User.email == email))
         return result.scalar_one_or_none()

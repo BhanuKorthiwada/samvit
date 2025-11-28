@@ -197,12 +197,14 @@ class AttendanceService:
     ) -> list[Attendance]:
         """Get attendance for a date range."""
         result = await self.session.execute(
-            select(Attendance).where(
+            select(Attendance)
+            .where(
                 Attendance.tenant_id == self.tenant_id,
                 Attendance.employee_id == employee_id,
                 Attendance.date >= start_date,
                 Attendance.date <= end_date,
-            ).order_by(Attendance.date)
+            )
+            .order_by(Attendance.date)
         )
         return list(result.scalars().all())
 
@@ -253,7 +255,9 @@ class AttendanceService:
 
         present = sum(1 for r in records if r.status == AttendanceStatus.PRESENT.value)
         absent = sum(1 for r in records if r.status == AttendanceStatus.ABSENT.value)
-        on_leave = sum(1 for r in records if r.status == AttendanceStatus.ON_LEAVE.value)
+        on_leave = sum(
+            1 for r in records if r.status == AttendanceStatus.ON_LEAVE.value
+        )
         late = sum(1 for r in records if r.is_late)
 
         total = len(records) if records else 1  # Avoid division by zero

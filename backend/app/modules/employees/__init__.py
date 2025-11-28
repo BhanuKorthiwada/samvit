@@ -9,7 +9,11 @@ from app.modules.employees.models import (
     MaritalStatus,
     Position,
 )
-from app.modules.employees.routes import department_router, employee_router, position_router
+from app.modules.employees.routes import (
+    department_router,
+    employee_router,
+    position_router,
+)
 from app.modules.employees.schemas import (
     DepartmentCreate,
     DepartmentResponse,

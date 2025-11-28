@@ -2,10 +2,10 @@
 
 from enum import Enum
 
-from sqlalchemy import Boolean, ForeignKey, String, Table, Column
+from sqlalchemy import Boolean, Column, ForeignKey, String, Table
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.shared.models import TenantBaseModel, BaseModel
+from app.shared.models import BaseModel, TenantBaseModel
 
 
 class UserRole(str, Enum):
@@ -64,7 +64,9 @@ class User(TenantBaseModel):
     __tablename__ = "users"
 
     # Auth credentials
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    email: Mapped[str] = mapped_column(
+        String(255), unique=True, nullable=False, index=True
+    )
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
 
     # Profile

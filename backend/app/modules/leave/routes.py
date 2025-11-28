@@ -1,7 +1,5 @@
 """Leave management API routes."""
 
-from datetime import date
-
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,7 +19,6 @@ from app.modules.leave.schemas import (
     LeaveStatus,
 )
 from app.modules.leave.service import LeaveService
-from app.shared.schemas import SuccessResponse
 
 router = APIRouter(prefix="/leave", tags=["Leave Management"])
 

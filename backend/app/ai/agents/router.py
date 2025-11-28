@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.ai.agents.base import AgentContext, AgentResponse
+from app.ai.agents.base import AgentContext
 from app.ai.agents.hr_assistant import HRAssistantAgent
 from app.core.database import get_async_session
 from app.core.deps import CurrentUser, TenantDep

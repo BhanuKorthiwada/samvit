@@ -222,7 +222,9 @@ class Payslip(TenantBaseModel):
     is_published: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Relationships
-    period: Mapped[PayrollPeriod] = relationship("PayrollPeriod", back_populates="payslips")
+    period: Mapped[PayrollPeriod] = relationship(
+        "PayrollPeriod", back_populates="payslips"
+    )
     items: Mapped[list["PayslipItem"]] = relationship(
         "PayslipItem",
         back_populates="payslip",

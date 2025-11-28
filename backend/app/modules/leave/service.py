@@ -19,7 +19,6 @@ from app.modules.leave.models import (
 )
 from app.modules.leave.schemas import (
     HolidayCreate,
-    HolidayUpdate,
     LeaveApproval,
     LeavePolicyCreate,
     LeavePolicyUpdate,
@@ -276,10 +275,12 @@ class LeaveService:
         """Get pending leave requests for approval."""
         # In a real app, this would check if approver_id is the reporting manager
         result = await self.session.execute(
-            select(LeaveRequest).where(
+            select(LeaveRequest)
+            .where(
                 LeaveRequest.tenant_id == self.tenant_id,
                 LeaveRequest.status == LeaveStatus.PENDING.value,
-            ).order_by(LeaveRequest.created_at.desc())
+            )
+            .order_by(LeaveRequest.created_at.desc())
         )
         return list(result.scalars().all())
 
@@ -345,7 +346,10 @@ class LeaveService:
                 "You can only cancel your own leave requests",
             )
 
-        if request.status not in [LeaveStatus.PENDING.value, LeaveStatus.APPROVED.value]:
+        if request.status not in [
+            LeaveStatus.PENDING.value,
+            LeaveStatus.APPROVED.value,
+        ]:
             raise BusinessRuleViolationError(
                 "invalid_status",
                 "Only pending or approved requests can be cancelled",
@@ -395,12 +399,14 @@ class LeaveService:
         end = date(year, 12, 31)
 
         result = await self.session.execute(
-            select(Holiday).where(
+            select(Holiday)
+            .where(
                 Holiday.tenant_id == self.tenant_id,
                 Holiday.date >= start,
                 Holiday.date <= end,
                 Holiday.is_active.is_(True),
-            ).order_by(Holiday.date)
+            )
+            .order_by(Holiday.date)
         )
         return list(result.scalars().all())
 

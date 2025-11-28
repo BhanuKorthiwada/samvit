@@ -17,9 +17,7 @@ class TenantRepository(BaseRepository[Tenant]):
 
     async def get_by_slug(self, slug: str) -> Tenant | None:
         """Get tenant by slug."""
-        result = await self.session.execute(
-            select(Tenant).where(Tenant.slug == slug)
-        )
+        result = await self.session.execute(select(Tenant).where(Tenant.slug == slug))
         return result.scalar_one_or_none()
 
     async def get_by_domain(self, domain: str) -> Tenant | None:
@@ -31,9 +29,7 @@ class TenantRepository(BaseRepository[Tenant]):
 
     async def get_by_email(self, email: str) -> Tenant | None:
         """Get tenant by email."""
-        result = await self.session.execute(
-            select(Tenant).where(Tenant.email == email)
-        )
+        result = await self.session.execute(select(Tenant).where(Tenant.email == email))
         return result.scalar_one_or_none()
 
     async def slug_exists(self, slug: str, exclude_id: str | None = None) -> bool:
@@ -51,9 +47,6 @@ class TenantRepository(BaseRepository[Tenant]):
     ) -> list[Tenant]:
         """Get all active tenants."""
         result = await self.session.execute(
-            select(Tenant)
-            .where(Tenant.is_active.is_(True))
-            .offset(offset)
-            .limit(limit)
+            select(Tenant).where(Tenant.is_active.is_(True)).offset(offset).limit(limit)
         )
         return list(result.scalars().all())

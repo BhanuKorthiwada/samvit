@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.attendance.models import Attendance, AttendanceStatus
 from app.modules.leave.models import Holiday, LeaveBalance, LeaveRequest
-from app.modules.payroll.models import Payslip, PayrollPeriod
+from app.modules.payroll.models import PayrollPeriod, Payslip
 
 
 class AgentTools:
@@ -100,7 +100,9 @@ class AgentTools:
         present = sum(1 for r in records if r.status == AttendanceStatus.PRESENT.value)
         absent = sum(1 for r in records if r.status == AttendanceStatus.ABSENT.value)
         leave = sum(1 for r in records if r.status == AttendanceStatus.ON_LEAVE.value)
-        half_day = sum(1 for r in records if r.status == AttendanceStatus.HALF_DAY.value)
+        half_day = sum(
+            1 for r in records if r.status == AttendanceStatus.HALF_DAY.value
+        )
 
         return {
             "month": target_month,
@@ -185,9 +187,7 @@ class AgentTools:
     ) -> dict[str, Any]:
         """Get team members on leave."""
         target_date = (
-            datetime.strptime(date_str, "%Y-%m-%d").date()
-            if date_str
-            else date.today()
+            datetime.strptime(date_str, "%Y-%m-%d").date() if date_str else date.today()
         )
 
         result = await self.session.execute(

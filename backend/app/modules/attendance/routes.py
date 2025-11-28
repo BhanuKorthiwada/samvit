@@ -20,7 +20,6 @@ from app.modules.attendance.schemas import (
     TimeEntryResponse,
 )
 from app.modules.attendance.service import AttendanceService
-from app.shared.schemas import SuccessResponse
 
 router = APIRouter(prefix="/attendance", tags=["Attendance"])
 

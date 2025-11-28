@@ -124,7 +124,10 @@ COMMON_TOOLS = {
         "parameters": {
             "type": "object",
             "properties": {
-                "count": {"type": "integer", "description": "Number of holidays to return"},
+                "count": {
+                    "type": "integer",
+                    "description": "Number of holidays to return",
+                },
             },
         },
     },

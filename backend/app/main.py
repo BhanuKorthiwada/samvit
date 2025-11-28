@@ -4,13 +4,15 @@ SAMVIT HRMS - Main Application.
 AI-powered multi-tenant Human Resource Management System.
 """
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+# Import all routers
+from app.ai.agents.router import router as ai_router
 from app.core.config import settings
 from app.core.database import engine
 from app.core.exceptions import (
@@ -22,9 +24,6 @@ from app.core.exceptions import (
     ValidationError,
 )
 from app.core.tenancy import TenantMiddleware
-
-# Import all routers
-from app.ai.agents.router import router as ai_router
 from app.modules.attendance.routes import router as attendance_router
 from app.modules.auth.routes import router as auth_router
 from app.modules.employees.routes import (
@@ -38,15 +37,27 @@ from app.modules.tenants.routes import router as tenants_router
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator:
+async def lifespan(_app: FastAPI) -> AsyncGenerator:
     """Application lifespan handler."""
     # Startup
-    print("🚀 Starting SAMVIT HRMS...")
     yield
     # Shutdown
-    print("👋 Shutting down SAMVIT HRMS...")
     await engine.dispose()
 
+
+# OpenAPI tags for better organization
+OPENAPI_TAGS = [
+    {"name": "Health", "description": "Health check endpoints"},
+    {"name": "Auth", "description": "Authentication and authorization"},
+    {"name": "Tenants", "description": "Multi-tenant organization management"},
+    {"name": "Departments", "description": "Department management"},
+    {"name": "Positions", "description": "Position/role management"},
+    {"name": "Employees", "description": "Employee management"},
+    {"name": "Attendance", "description": "Time tracking and attendance"},
+    {"name": "Leave", "description": "Leave policies, requests, and balances"},
+    {"name": "Payroll", "description": "Salary structures and payslips"},
+    {"name": "AI Agents", "description": "AI-powered conversational HR assistant"},
+]
 
 app = FastAPI(
     title=settings.app_name,
@@ -56,6 +67,17 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
+    openapi_tags=OPENAPI_TAGS,
+    swagger_ui_parameters={
+        "docExpansion": "list",
+        "filter": True,
+        "tryItOutEnabled": True,
+        "persistAuthorization": True,
+        "displayRequestDuration": True,
+        "defaultModelsExpandDepth": 3,
+        "defaultModelExpandDepth": 3,
+        "syntaxHighlight.theme": "monokai",
+    },
 )
 
 # --- CORS Middleware ---
@@ -76,7 +98,7 @@ app.add_middleware(TenantMiddleware)
 
 @app.exception_handler(EntityNotFoundError)
 async def entity_not_found_handler(
-    request: Request,
+    _request: Request,
     exc: EntityNotFoundError,
 ) -> JSONResponse:
     """Handle entity not found errors."""
@@ -88,7 +110,7 @@ async def entity_not_found_handler(
 
 @app.exception_handler(ValidationError)
 async def validation_error_handler(
-    request: Request,
+    _request: Request,
     exc: ValidationError,
 ) -> JSONResponse:
     """Handle validation errors."""
@@ -100,7 +122,7 @@ async def validation_error_handler(
 
 @app.exception_handler(AuthenticationError)
 async def authentication_error_handler(
-    request: Request,
+    _request: Request,
     exc: AuthenticationError,
 ) -> JSONResponse:
     """Handle authentication errors."""
@@ -113,7 +135,7 @@ async def authentication_error_handler(
 
 @app.exception_handler(AuthorizationError)
 async def authorization_error_handler(
-    request: Request,
+    _request: Request,
     exc: AuthorizationError,
 ) -> JSONResponse:
     """Handle authorization errors."""
@@ -125,7 +147,7 @@ async def authorization_error_handler(
 
 @app.exception_handler(BusinessRuleViolationError)
 async def business_rule_error_handler(
-    request: Request,
+    _request: Request,
     exc: BusinessRuleViolationError,
 ) -> JSONResponse:
     """Handle business rule violations."""
@@ -137,7 +159,7 @@ async def business_rule_error_handler(
 
 @app.exception_handler(SamvitException)
 async def samvit_exception_handler(
-    request: Request,
+    _request: Request,
     exc: SamvitException,
 ) -> JSONResponse:
     """Handle general Samvit exceptions."""

@@ -101,9 +101,7 @@ class TenantRepository(Generic[TenantModelType]):
     async def get_by_id(self, id: str) -> TenantModelType | None:
         """Get entity by ID within tenant scope."""
         result = await self.session.execute(
-            self._apply_tenant_filter(
-                select(self.model).where(self.model.id == id)
-            )
+            self._apply_tenant_filter(select(self.model).where(self.model.id == id))
         )
         return result.scalar_one_or_none()
 
@@ -133,9 +131,7 @@ class TenantRepository(Generic[TenantModelType]):
 
     async def count(self, filters: dict[str, Any] | None = None) -> int:
         """Count entities within tenant scope."""
-        query = self._apply_tenant_filter(
-            select(func.count()).select_from(self.model)
-        )
+        query = self._apply_tenant_filter(select(func.count()).select_from(self.model))
 
         if filters:
             for key, value in filters.items():

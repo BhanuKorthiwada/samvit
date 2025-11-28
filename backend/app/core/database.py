@@ -9,7 +9,9 @@ from sqlalchemy.orm import DeclarativeBase
 from app.core.config import settings
 
 # Context variable to store current tenant ID
-current_tenant_id: ContextVar[str | None] = ContextVar("current_tenant_id", default=None)
+current_tenant_id: ContextVar[str | None] = ContextVar(
+    "current_tenant_id", default=None
+)
 
 # Create async engine
 engine = create_async_engine(

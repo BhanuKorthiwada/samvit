@@ -3,10 +3,10 @@
 from app.modules.payroll.models import (
     EmployeeSalary,
     EmployeeSalaryComponent,
-    Payslip,
-    PayslipItem,
     PayrollPeriod,
     PayrollStatus,
+    Payslip,
+    PayslipItem,
     SalaryComponent,
     SalaryStructure,
 )

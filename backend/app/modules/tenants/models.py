@@ -3,7 +3,7 @@
 from enum import Enum
 
 from sqlalchemy import Boolean, String, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.models import BaseModel, TimestampMixin
 
@@ -33,7 +33,9 @@ class Tenant(BaseModel, TimestampMixin):
 
     # Basic Info
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
+    slug: Mapped[str] = mapped_column(
+        String(100), unique=True, nullable=False, index=True
+    )
     domain: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
 
     # Contact

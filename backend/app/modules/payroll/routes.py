@@ -20,7 +20,6 @@ from app.modules.payroll.schemas import (
     SalaryStructureResponse,
 )
 from app.modules.payroll.service import PayrollService
-from app.shared.schemas import SuccessResponse
 
 router = APIRouter(prefix="/payroll", tags=["Payroll"])
 

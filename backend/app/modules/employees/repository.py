@@ -1,7 +1,6 @@
 """Employee repository."""
 
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.modules.employees.models import Department, Employee, Position
@@ -16,9 +15,7 @@ class DepartmentRepository(TenantRepository[Department]):
     async def get_by_code(self, code: str) -> Department | None:
         """Get department by code."""
         result = await self.session.execute(
-            self._apply_tenant_filter(
-                select(Department).where(Department.code == code)
-            )
+            self._apply_tenant_filter(select(Department).where(Department.code == code))
         )
         return result.scalar_one_or_none()
 
@@ -51,9 +48,7 @@ class PositionRepository(TenantRepository[Position]):
     async def get_by_code(self, code: str) -> Position | None:
         """Get position by code."""
         result = await self.session.execute(
-            self._apply_tenant_filter(
-                select(Position).where(Position.code == code)
-            )
+            self._apply_tenant_filter(select(Position).where(Position.code == code))
         )
         return result.scalar_one_or_none()
 
@@ -84,9 +79,7 @@ class EmployeeRepository(TenantRepository[Employee]):
     async def get_by_email(self, email: str) -> Employee | None:
         """Get employee by email."""
         result = await self.session.execute(
-            self._apply_tenant_filter(
-                select(Employee).where(Employee.email == email)
-            )
+            self._apply_tenant_filter(select(Employee).where(Employee.email == email))
         )
         return result.scalar_one_or_none()
 

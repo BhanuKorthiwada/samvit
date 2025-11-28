@@ -60,7 +60,7 @@ class TenantBaseModel(BaseModel, TenantMixin):
 
 # Event listener to automatically set tenant_id on insert
 @event.listens_for(TenantBaseModel, "before_insert", propagate=True)
-def set_tenant_id_on_insert(mapper, connection, target):
+def set_tenant_id_on_insert(_mapper, _connection, target):
     """Automatically set tenant_id from context if not set."""
     if not target.tenant_id:
         tenant_id = current_tenant_id.get()
