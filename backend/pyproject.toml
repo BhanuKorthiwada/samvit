@@ -1,17 +1,22 @@
 [project]
 name = "samvit"
 version = "0.1.0"
-description = "Add your description here"
+description = "AI-powered multi-tenant Human Resource Management System"
 readme = "README.md"
 requires-python = ">=3.13,<4"
 dependencies = [
     "alembic>=1.17.2",
+    "asyncpg>=0.30.0",
+    "bcrypt>=4.2.0",
     "chromadb>=1.3.5",
     "fastapi[standard]>=0.122.0",
     "langgraph>=1.0.4",
+    "passlib[bcrypt]>=1.7.4",
     "pydantic>=2.12.5",
+    "pydantic-settings>=2.9.0",
+    "python-jose[cryptography]>=3.4.0",
     "qdrant-client>=1.16.1",
-    "sqlalchemy>=2.0.44",
+    "sqlalchemy[asyncio]>=2.0.44",
     "agent-framework-core>=1.0.0b251120,<2.0.0",
     "pillow>=12.0.0",
     "google-adk>=1.18.0",
