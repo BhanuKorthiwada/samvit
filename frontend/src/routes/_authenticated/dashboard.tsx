@@ -1,17 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState } from 'react';
 import {
-  Users,
-  UserCheck,
-  Clock,
-  Calendar,
-  TrendingUp,
   AlertCircle,
+  Calendar,
   CheckCircle,
+  Clock,
+  TrendingUp,
+  UserCheck,
+  Users,
 } from 'lucide-react';
-import { employeeService, attendanceService, leaveRequestService } from '@/lib/api';
-import type { EmployeeStats, DailyAttendanceReport, LeaveRequestResponse } from '@/lib/api/types';
+import type { DailyAttendanceReport, EmployeeStats, LeaveRequestResponse } from '@/lib/api/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { attendanceService, employeeService, leaveRequestService } from '@/lib/api';
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
   component: DashboardPage,
@@ -54,7 +54,7 @@ function DashboardPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState<EmployeeStats | null>(null);
   const [attendanceReport, setAttendanceReport] = useState<DailyAttendanceReport | null>(null);
-  const [pendingLeaves, setPendingLeaves] = useState<LeaveRequestResponse[]>([]);
+  const [pendingLeaves, setPendingLeaves] = useState<Array<LeaveRequestResponse>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -135,7 +135,7 @@ function DashboardPage() {
           value={attendanceReport?.present ?? '-'}
           icon={UserCheck}
           color="green"
-          subtitle={`${attendanceReport?.attendance_percentage?.toFixed(1) ?? 0}% attendance`}
+          subtitle={`${attendanceReport?.attendance_percentage.toFixed(1) ?? 0}% attendance`}
         />
         <StatCard
           title="On Leave"

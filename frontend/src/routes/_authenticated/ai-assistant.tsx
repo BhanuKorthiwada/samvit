@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Loader2, Sparkles } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Bot, Loader2, Send, Sparkles, User } from 'lucide-react';
 
 export const Route = createFileRoute('/_authenticated/ai-assistant')({
   component: AIAssistantPage,
@@ -14,7 +14,7 @@ interface Message {
 }
 
 function AIAssistantPage() {
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<Array<Message>>([
     {
       id: '1',
       role: 'assistant',

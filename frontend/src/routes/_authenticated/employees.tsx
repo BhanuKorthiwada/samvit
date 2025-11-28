@@ -1,23 +1,23 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
+import { Link, createFileRoute } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
 import {
-  Users,
-  Search,
-  Plus,
-  Filter,
   ChevronLeft,
   ChevronRight,
+  Filter,
+  Plus,
+  Search,
+  Users,
 } from 'lucide-react';
-import { employeeService, departmentService } from '@/lib/api';
-import type { EmployeeSummary, DepartmentSummary } from '@/lib/api/types';
+import type { DepartmentSummary, EmployeeSummary } from '@/lib/api/types';
+import { departmentService, employeeService } from '@/lib/api';
 
 export const Route = createFileRoute('/_authenticated/employees')({
   component: EmployeesPage,
 });
 
 function EmployeesPage() {
-  const [employees, setEmployees] = useState<EmployeeSummary[]>([]);
-  const [departments, setDepartments] = useState<DepartmentSummary[]>([]);
+  const [employees, setEmployees] = useState<Array<EmployeeSummary>>([]);
+  const [departments, setDepartments] = useState<Array<DepartmentSummary>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);

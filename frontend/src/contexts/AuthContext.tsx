@@ -2,8 +2,10 @@
  * Authentication Context and Provider
  */
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { authService, type CurrentUserResponse } from '@/lib/api';
+import {  createContext, useCallback, useContext, useEffect, useState } from 'react';
+import type {ReactNode} from 'react';
+import type {CurrentUserResponse} from '@/lib/api';
+import {  authService } from '@/lib/api';
 import { apiClient } from '@/lib/api/client';
 
 interface AuthContextType {

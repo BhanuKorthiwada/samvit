@@ -1,8 +1,9 @@
 """Functional API tests for SAMVIT HRMS."""
 
-import httpx
-from datetime import datetime
 import sys
+from datetime import datetime
+
+import httpx
 
 BASE_URL = "http://localhost:8000"
 API_V1 = f"{BASE_URL}/api/v1"

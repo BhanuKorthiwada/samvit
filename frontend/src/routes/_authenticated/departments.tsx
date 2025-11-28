@@ -1,15 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
-import { Building2, Plus, Search, ChevronRight } from 'lucide-react';
-import { departmentService } from '@/lib/api';
+import { useEffect, useState } from 'react';
+import { Building2, ChevronRight, Plus, Search } from 'lucide-react';
 import type { DepartmentSummary } from '@/lib/api/types';
+import { departmentService } from '@/lib/api';
 
 export const Route = createFileRoute('/_authenticated/departments')({
   component: DepartmentsPage,
 });
 
 function DepartmentsPage() {
-  const [departments, setDepartments] = useState<DepartmentSummary[]>([]);
+  const [departments, setDepartments] = useState<Array<DepartmentSummary>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');

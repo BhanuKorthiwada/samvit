@@ -1,15 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
-import { Clock, Play, Square, Calendar, TrendingUp, AlertCircle } from 'lucide-react';
-import { attendanceService } from '@/lib/api';
+import { useEffect, useState } from 'react';
+import { AlertCircle, Calendar, Clock, Play, Square, TrendingUp } from 'lucide-react';
 import type { AttendanceResponse } from '@/lib/api/types';
+import { attendanceService } from '@/lib/api';
 
 export const Route = createFileRoute('/_authenticated/attendance')({
   component: AttendancePage,
 });
 
 function AttendancePage() {
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceResponse[]>([]);
+  const [attendanceRecords, setAttendanceRecords] = useState<Array<AttendanceResponse>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -33,7 +33,7 @@ function AttendancePage() {
         const todayRecord = records.find(
           (r) => r.date === today.toISOString().split('T')[0]
         );
-        if (todayRecord?.clock_in && !todayRecord?.clock_out) {
+        if (todayRecord?.clock_in && !todayRecord.clock_out) {
           setIsClockedIn(true);
           setClockInTime(todayRecord.clock_in);
         }

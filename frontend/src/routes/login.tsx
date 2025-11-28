@@ -1,7 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { AlertCircle, Building2, Lock, LogIn, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { LogIn, User, Lock, AlertCircle, Building2 } from 'lucide-react';
 
 export const Route = createFileRoute('/login')({
   beforeLoad: () => {

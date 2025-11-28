@@ -1,20 +1,20 @@
-import { createFileRoute, redirect, Outlet, Link, useLocation } from '@tanstack/react-router';
-import { useAuth } from '@/contexts/AuthContext';
+import { Link, Outlet, createFileRoute, redirect, useLocation } from '@tanstack/react-router';
 import {
-  LayoutDashboard,
-  Users,
+  Bot,
   Building2,
   Calendar,
+  ChevronDown,
   Clock,
-  Wallet,
-  Settings,
+  LayoutDashboard,
   LogOut,
   Menu,
+  Settings,
+  Users,
+  Wallet,
   X,
-  ChevronDown,
-  Bot,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: () => {
@@ -31,7 +31,7 @@ interface NavItem {
   icon: React.ElementType;
 }
 
-const navigation: NavItem[] = [
+const navigation: Array<NavItem> = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Employees', href: '/employees', icon: Users },
   { name: 'Departments', href: '/departments', icon: Building2 },
@@ -133,8 +133,8 @@ function AuthenticatedLayout() {
               >
                 <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center">
                   <span className="text-sm font-medium text-cyan-400">
-                    {user?.first_name?.[0]}
-                    {user?.last_name?.[0]}
+                    {user?.first_name[0]}
+                    {user?.last_name[0]}
                   </span>
                 </div>
                 <div className="hidden sm:block text-left">

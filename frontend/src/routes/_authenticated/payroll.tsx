@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Wallet, FileText, TrendingUp, Calendar } from 'lucide-react';
+import { Calendar, FileText, TrendingUp, Wallet } from 'lucide-react';
 
 export const Route = createFileRoute('/_authenticated/payroll')({
   component: PayrollPage,
