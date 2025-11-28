@@ -33,10 +33,10 @@ class Tenant(BaseModel, TimestampMixin):
 
     # Basic Info
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    slug: Mapped[str] = mapped_column(
-        String(100), unique=True, nullable=False, index=True
+    # Full domain: acme.samvit.bhanu.dev OR hr.acme.com (custom domain)
+    domain: Mapped[str] = mapped_column(
+        String(255), unique=True, nullable=False, index=True
     )
-    domain: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
 
     # Contact
     email: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -80,4 +80,4 @@ class Tenant(BaseModel, TimestampMixin):
     # employees = relationship("Employee", back_populates="tenant")
 
     def __repr__(self) -> str:
-        return f"<Tenant {self.name} ({self.slug})>"
+        return f"<Tenant {self.name} ({self.domain})>"

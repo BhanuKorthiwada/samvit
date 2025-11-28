@@ -7,7 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.ai.agents.base import AgentContext
 from app.ai.agents.hr_assistant import HRAssistantAgent
 from app.core.database import get_async_session
-from app.core.deps import CurrentUser, TenantDep
+from app.core.security import CurrentUser
+from app.core.tenancy import TenantDep
 
 router = APIRouter(prefix="/ai", tags=["AI Agents"])
 

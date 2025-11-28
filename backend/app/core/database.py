@@ -2,7 +2,9 @@
 
 from collections.abc import AsyncGenerator
 from contextvars import ContextVar
+from typing import Annotated
 
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
@@ -41,9 +43,6 @@ async_session_maker = async_sessionmaker(
     autoflush=False,
 )
 
-# Alias for easier imports
-AsyncSessionLocal = async_session_maker
-
 
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy models."""
@@ -62,6 +61,10 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
             raise
         finally:
             await session.close()
+
+
+# Type alias for dependency injection
+DbSession = Annotated[AsyncSession, Depends(get_async_session)]
 
 
 async def init_db() -> None:

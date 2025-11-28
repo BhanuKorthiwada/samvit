@@ -1,19 +1,33 @@
-"""Functional API tests for SAMVIT HRMS."""
+"""Functional API tests for SAMVIT HRMS.
+
+These tests use domain-based multi-tenancy. The Host header is used to
+identify the tenant. For testing, we register a company first which
+creates a subdomain, then all subsequent requests use that subdomain
+in the Host header.
+"""
 
 import sys
 from datetime import datetime
 
 import httpx
 
-BASE_URL = "http://localhost:8000"
+# Server configuration
+HOST = "localhost"
+PORT = "8000"
+BASE_URL = f"http://{HOST}:{PORT}"
 API_V1 = f"{BASE_URL}/api/v1"
 
-# Test tenant ID for all requests
-TEST_TENANT_ID = "test-tenant-001"
+# Base domain for multi-tenancy (matches config)
+BASE_DOMAIN = "samvit.bhanu.dev"
+
+# Test company subdomain - will be used as {subdomain}.{BASE_DOMAIN}
+TEST_SUBDOMAIN = "acme-test"
+TEST_TENANT_DOMAIN = f"{TEST_SUBDOMAIN}.{BASE_DOMAIN}"
 
 # Store created entity IDs for cleanup and reference
 created_ids = {
     "tenant": None,
+    "company_tenant": None,
     "user": None,
     "department": None,
     "position": None,
@@ -31,12 +45,22 @@ created_ids = {
 auth_token = None
 
 
-def get_headers(with_auth=True):
-    """Get headers for API requests."""
+def get_headers(with_auth=True, with_tenant=True):
+    """Get headers for API requests.
+
+    Args:
+        with_auth: Include Authorization header if auth_token is available.
+        with_tenant: Include Host header for tenant identification.
+                     Set to False for tenant-independent endpoints.
+    """
     headers = {
         "Content-Type": "application/json",
-        "X-Tenant-ID": TEST_TENANT_ID,
     }
+    # Use Host header for domain-based tenant identification
+    # In production, this would be the actual subdomain request
+    # For testing against localhost, we set Host header explicitly
+    if with_tenant:
+        headers["Host"] = TEST_TENANT_DOMAIN
     if with_auth and auth_token:
         headers["Authorization"] = f"Bearer {auth_token}"
     return headers
@@ -87,19 +111,23 @@ def test_openapi():
 
 
 def test_create_tenant():
-    """Test tenant creation."""
+    """Test tenant creation (platform admin endpoint).
+
+    This is a platform-level admin endpoint that doesn't require
+    tenant context - it creates tenants.
+    """
     global created_ids
     try:
         data = {
             "name": "Test Company",
-            "slug": "test-company",
+            "domain": "test-company.samvit.bhanu.dev",
             "email": "admin@testcompany.com",
-            "subscription_plan": "professional",
         }
+        # Platform-level endpoint - no tenant context needed
         response = httpx.post(
             f"{API_V1}/tenants",
             json=data,
-            headers=get_headers(with_auth=False),
+            headers={"Content-Type": "application/json"},
             timeout=10,
         )
         success = response.status_code in [200, 201]
@@ -117,11 +145,12 @@ def test_create_tenant():
 
 
 def test_list_tenants():
-    """Test listing tenants."""
+    """Test listing tenants (platform admin endpoint)."""
     try:
+        # Platform-level endpoint - no tenant context needed
         response = httpx.get(
             f"{API_V1}/tenants",
-            headers=get_headers(with_auth=False),
+            headers={"Content-Type": "application/json"},
             timeout=10,
         )
         success = response.status_code == 200
@@ -129,6 +158,49 @@ def test_list_tenants():
         return success
     except Exception as e:
         print_result("List Tenants", False, str(e))
+        return False
+
+
+def test_register_company():
+    """Test company (tenant + admin) registration.
+
+    This creates a new tenant with subdomain that matches TEST_SUBDOMAIN.
+    All subsequent tests will use this tenant via the Host header.
+    """
+    global auth_token, created_ids
+    try:
+        data = {
+            "company_name": "Acme Corporation",
+            "subdomain": TEST_SUBDOMAIN,  # Must match TEST_SUBDOMAIN for other tests
+            "company_email": "info@acme.com",
+            "admin_email": "admin@acme.com",
+            "admin_password": "Admin@12345",
+            "admin_first_name": "Admin",
+            "admin_last_name": "User",
+        }
+        # Company registration doesn't need tenant - it creates one
+        response = httpx.post(
+            f"{API_V1}/auth/register/company",
+            json=data,
+            headers={"Content-Type": "application/json"},
+            timeout=10,
+        )
+        success = response.status_code in [200, 201]
+        if success:
+            result = response.json()
+            # Store for potential cleanup and use the admin's token
+            created_ids["company_tenant"] = result.get("tenant_id")
+            auth_token = result.get(
+                "access_token"
+            )  # Use admin token for subsequent tests
+        print_result(
+            "Register Company",
+            success,
+            f"Status: {response.status_code}, Body: {response.text[:200]}",
+        )
+        return success
+    except Exception as e:
+        print_result("Register Company", False, str(e))
         return False
 
 
@@ -704,6 +776,7 @@ def run_all_tests():
     print("--- Tenant Module Tests ---")
     results.append(("Create Tenant", test_create_tenant()))
     results.append(("List Tenants", test_list_tenants()))
+    results.append(("Register Company", test_register_company()))
     print()
 
     # Auth Tests

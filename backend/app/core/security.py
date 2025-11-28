@@ -1,15 +1,21 @@
 """Security utilities for authentication and authorization."""
 
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Literal
+from typing import Annotated, Literal
 
 import bcrypt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
 from app.core.config import settings
 
 # Type alias for token types
 TokenType = Literal["access", "refresh"]
+
+# Security scheme for JWT Bearer authentication
+security = HTTPBearer(auto_error=False)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -48,8 +54,15 @@ def validate_password_strength(password: str) -> list[str]:
 def create_access_token(
     data: dict,
     expires_delta: timedelta | None = None,
+    issuer: str | None = None,
 ) -> str:
-    """Create a JWT access token."""
+    """Create a JWT access token.
+
+    Args:
+        data: Token payload (should include sub, tenant_id)
+        expires_delta: Optional custom expiration time
+        issuer: Domain that issued the token (for multi-tenant validation)
+    """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -57,7 +70,15 @@ def create_access_token(
         expire = datetime.now(timezone.utc) + timedelta(
             minutes=settings.access_token_expire_minutes
         )
-    to_encode.update({"exp": expire, "type": "access"})
+    to_encode.update(
+        {
+            "exp": expire,
+            "type": "access",
+            "iat": datetime.now(timezone.utc),
+        }
+    )
+    if issuer:
+        to_encode["iss"] = issuer
     encoded_jwt = jwt.encode(
         to_encode,
         settings.secret_key,
@@ -69,8 +90,15 @@ def create_access_token(
 def create_refresh_token(
     data: dict,
     expires_delta: timedelta | None = None,
+    issuer: str | None = None,
 ) -> str:
-    """Create a JWT refresh token."""
+    """Create a JWT refresh token.
+
+    Args:
+        data: Token payload (should include sub, tenant_id)
+        expires_delta: Optional custom expiration time
+        issuer: Domain that issued the token (for multi-tenant validation)
+    """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -78,7 +106,15 @@ def create_refresh_token(
         expire = datetime.now(timezone.utc) + timedelta(
             days=settings.refresh_token_expire_days
         )
-    to_encode.update({"exp": expire, "type": "refresh"})
+    to_encode.update(
+        {
+            "exp": expire,
+            "type": "refresh",
+            "iat": datetime.now(timezone.utc),
+        }
+    )
+    if issuer:
+        to_encode["iss"] = issuer
     encoded_jwt = jwt.encode(
         to_encode,
         settings.secret_key,
@@ -113,3 +149,84 @@ def decode_token(token: str, expected_type: TokenType | None = None) -> dict | N
         return payload
     except JWTError:
         return None
+
+
+# --- User Context and Dependencies ---
+
+
+@dataclass
+class UserContext:
+    """Current user context extracted from JWT."""
+
+    id: str
+    email: str | None = None
+    tenant_id: str | None = None
+
+
+def _get_validated_payload(
+    credentials: HTTPAuthorizationCredentials | None,
+) -> dict:
+    """Validate credentials and return JWT payload. Raises 401 on failure."""
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    payload = decode_token(credentials.credentials)
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if not payload.get("sub"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return payload
+
+
+async def get_current_user_id(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+) -> str:
+    """Get current user ID from JWT token. Raises 401 if not authenticated."""
+    payload = _get_validated_payload(credentials)
+    return payload["sub"]
+
+
+async def get_current_user(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+) -> UserContext:
+    """Get current user context from JWT token. Raises 401 if not authenticated."""
+    payload = _get_validated_payload(credentials)
+    return UserContext(
+        id=payload["sub"],
+        email=payload.get("email"),
+        tenant_id=payload.get("tenant_id"),
+    )
+
+
+async def get_current_user_optional(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+) -> str | None:
+    """Get current user ID if authenticated, None otherwise."""
+    if not credentials:
+        return None
+
+    payload = decode_token(credentials.credentials)
+    if not payload:
+        return None
+
+    return payload.get("sub")
+
+
+# Type aliases for dependency injection
+CurrentUserId = Annotated[str, Depends(get_current_user_id)]
+CurrentUser = Annotated[UserContext, Depends(get_current_user)]
+OptionalUserId = Annotated[str | None, Depends(get_current_user_optional)]

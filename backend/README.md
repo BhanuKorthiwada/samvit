@@ -137,12 +137,25 @@ Once running, access:
 
 ## Multi-Tenancy
 
-All requests require `X-Tenant-ID` header (except auth endpoints). Row-level security is enforced via `tenant_id` on all models.
+Multi-tenancy is enforced via **domain-based tenant identification**. The tenant is resolved from the `Host` header (subdomain or custom domain). Row-level security is enforced via `tenant_id` on all models.
+
+### How it works
+
+1. Each tenant has a unique domain (e.g., `acme.samvit.bhanu.dev` or `hr.acme.com`)
+2. The `Host` header is used to identify the tenant
+3. JWT tokens include `tenant_id` for authorization
+
+### Example Request
 
 ```bash
-curl -H "X-Tenant-ID: tenant-uuid" \
+# Using subdomain
+curl -H "Host: acme.samvit.bhanu.dev" \
      -H "Authorization: Bearer <token>" \
      http://localhost:8000/api/v1/employees
+
+# For local development, add to /etc/hosts:
+# 127.0.0.1 acme.samvit.bhanu.dev
+# Then access: http://acme.samvit.bhanu.dev:8000/api/v1/employees
 ```
 
 ## Development

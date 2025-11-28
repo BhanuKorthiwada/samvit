@@ -1,5 +1,9 @@
 /**
  * API Client for SAMVIT HRMS Backend
+ * 
+ * Multi-tenancy is handled via domain-based identification.
+ * The browser automatically sends the Host header with the subdomain,
+ * so no explicit tenant header is needed.
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
@@ -15,18 +19,9 @@ interface ApiError {
 
 class ApiClient {
   private baseUrl: string;
-  private tenantId: string | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
-  }
-
-  setTenantId(tenantId: string | null) {
-    this.tenantId = tenantId;
-  }
-
-  getTenantId(): string | null {
-    return this.tenantId;
   }
 
   private getAuthToken(): string | null {
@@ -61,9 +56,6 @@ class ApiClient {
       (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
     }
 
-    if (this.tenantId) {
-      (headers as Record<string, string>)['X-Tenant-ID'] = this.tenantId;
-    }
 
     const response = await fetch(url, {
       ...fetchOptions,

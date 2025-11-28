@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_async_session
-from app.core.deps import TenantDep
 from app.core.exceptions import EntityAlreadyExistsError, EntityNotFoundError
+from app.core.tenancy import TenantDep
 from app.modules.employees.schemas import (
     DepartmentCreate,
     DepartmentResponse,

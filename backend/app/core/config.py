@@ -45,8 +45,15 @@ class Settings(BaseSettings):
     bcrypt_rounds: int = 12
 
     # Multi-tenancy
-    tenant_header_name: str = "X-Tenant-ID"
-    default_tenant_id: str | None = None
+    # Base domain for subdomain extraction (e.g., "samvit.bhanu.dev")
+    base_domain: str = "samvit.bhanu.dev"
+    # Reserved domains that cannot be used as tenant domains
+    reserved_domains: list[str] = [
+        "app.samvit.bhanu.dev",
+        "www.samvit.bhanu.dev",
+        "api.samvit.bhanu.dev",
+        "admin.samvit.bhanu.dev",
+    ]
 
     # CORS
     cors_origins: list[str] = ["http://localhost:3010", "http://localhost:3000"]

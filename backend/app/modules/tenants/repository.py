@@ -15,15 +15,10 @@ class TenantRepository(BaseRepository[Tenant]):
     def __init__(self, session: AsyncSession):
         super().__init__(session)
 
-    async def get_by_slug(self, slug: str) -> Tenant | None:
-        """Get tenant by slug."""
-        result = await self.session.execute(select(Tenant).where(Tenant.slug == slug))
-        return result.scalar_one_or_none()
-
     async def get_by_domain(self, domain: str) -> Tenant | None:
-        """Get tenant by custom domain."""
+        """Get tenant by domain (primary lookup method)."""
         result = await self.session.execute(
-            select(Tenant).where(Tenant.domain == domain)
+            select(Tenant).where(Tenant.domain == domain.lower())
         )
         return result.scalar_one_or_none()
 
@@ -32,9 +27,9 @@ class TenantRepository(BaseRepository[Tenant]):
         result = await self.session.execute(select(Tenant).where(Tenant.email == email))
         return result.scalar_one_or_none()
 
-    async def slug_exists(self, slug: str, exclude_id: str | None = None) -> bool:
-        """Check if slug exists."""
-        query = select(Tenant.id).where(Tenant.slug == slug)
+    async def domain_exists(self, domain: str, exclude_id: str | None = None) -> bool:
+        """Check if domain exists."""
+        query = select(Tenant.id).where(Tenant.domain == domain.lower())
         if exclude_id:
             query = query.where(Tenant.id != exclude_id)
         result = await self.session.execute(query)

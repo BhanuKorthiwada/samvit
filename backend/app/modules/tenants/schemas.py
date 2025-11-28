@@ -1,5 +1,6 @@
 """Tenant schemas."""
 
+import re
 from enum import Enum
 
 from pydantic import EmailStr, Field, field_validator
@@ -29,10 +30,10 @@ class TenantCreate(BaseSchema):
     """Schema for creating a tenant."""
 
     name: str = Field(..., min_length=2, max_length=255)
-    slug: str = Field(..., min_length=2, max_length=100, pattern=r"^[a-z0-9-]+$")
+    # Full domain: acme.samvit.bhanu.dev or hr.acme.com
+    domain: str = Field(..., min_length=4, max_length=255)
     email: EmailStr
     phone: str | None = Field(default=None, max_length=50)
-    domain: str | None = Field(default=None, max_length=255)
 
     # Address
     address: str | None = None
@@ -45,11 +46,16 @@ class TenantCreate(BaseSchema):
     timezone: str = Field(default="Asia/Kolkata", max_length=50)
     currency: str = Field(default="INR", max_length=10)
 
-    @field_validator("slug")
+    @field_validator("domain")
     @classmethod
-    def validate_slug(cls, v: str) -> str:
-        """Ensure slug is lowercase."""
-        return v.lower()
+    def validate_domain(cls, v: str) -> str:
+        """Validate and normalize domain."""
+        v = v.lower().strip()
+        # Basic domain validation
+        pattern = r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$"
+        if not re.match(pattern, v):
+            raise ValueError("Invalid domain format")
+        return v
 
 
 class TenantUpdate(BaseSchema):
@@ -58,7 +64,6 @@ class TenantUpdate(BaseSchema):
     name: str | None = Field(default=None, min_length=2, max_length=255)
     email: EmailStr | None = None
     phone: str | None = Field(default=None, max_length=50)
-    domain: str | None = Field(default=None, max_length=255)
 
     # Address
     address: str | None = None
@@ -81,10 +86,9 @@ class TenantResponse(BaseEntitySchema):
     """Schema for tenant response."""
 
     name: str
-    slug: str
+    domain: str
     email: str
     phone: str | None
-    domain: str | None
 
     # Address
     address: str | None
@@ -115,7 +119,17 @@ class TenantSummary(BaseSchema):
 
     id: str
     name: str
-    slug: str
+    domain: str
     plan: SubscriptionPlan
     status: TenantStatus
     is_active: bool
+
+
+class TenantPublicInfo(BaseSchema):
+    """Public tenant info (for login page branding)."""
+
+    id: str
+    name: str
+    domain: str
+    logo_url: str | None
+    primary_color: str

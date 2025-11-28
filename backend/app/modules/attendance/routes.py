@@ -6,8 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_async_session
-from app.core.deps import CurrentUserId, TenantDep
 from app.core.exceptions import BusinessRuleViolationError, EntityNotFoundError
+from app.core.security import CurrentUserId
+from app.core.tenancy import TenantDep
 from app.modules.attendance.schemas import (
     AttendanceRegularize,
     AttendanceResponse,

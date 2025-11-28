@@ -1,12 +1,14 @@
 """Tenant API routes."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_async_session
 from app.core.exceptions import EntityAlreadyExistsError, EntityNotFoundError
+from app.core.tenancy import extract_domain_from_host
 from app.modules.tenants.schemas import (
     TenantCreate,
+    TenantPublicInfo,
     TenantResponse,
     TenantSummary,
     TenantUpdate,
@@ -22,6 +24,38 @@ def get_tenant_service(
 ) -> TenantService:
     """Get tenant service dependency."""
     return TenantService(session)
+
+
+@router.get(
+    "/info",
+    response_model=TenantPublicInfo,
+    summary="Get tenant info from current domain",
+)
+async def get_tenant_info(
+    request: Request,
+    service: TenantService = Depends(get_tenant_service),
+) -> TenantPublicInfo:
+    """
+    Get public tenant info based on the current domain (from Host header).
+    Used by frontend to show tenant branding on login page.
+    """
+    host = request.headers.get("host", "")
+    domain = extract_domain_from_host(host)
+
+    try:
+        tenant = await service.get_tenant_by_domain(domain)
+        return TenantPublicInfo(
+            id=tenant.id,
+            name=tenant.name,
+            domain=tenant.domain,
+            logo_url=tenant.logo_url,
+            primary_color=tenant.primary_color,
+        )
+    except EntityNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Tenant not found for domain: {domain}",
+        )
 
 
 @router.post(
@@ -83,17 +117,17 @@ async def get_tenant(
 
 
 @router.get(
-    "/slug/{slug}",
+    "/domain/{domain:path}",
     response_model=TenantResponse,
-    summary="Get tenant by slug",
+    summary="Get tenant by domain",
 )
-async def get_tenant_by_slug(
-    slug: str,
+async def get_tenant_by_domain(
+    domain: str,
     service: TenantService = Depends(get_tenant_service),
 ) -> TenantResponse:
-    """Get a tenant by its slug."""
+    """Get a tenant by its domain."""
     try:
-        tenant = await service.get_tenant_by_slug(slug)
+        tenant = await service.get_tenant_by_domain(domain)
         return TenantResponse.model_validate(tenant)
     except EntityNotFoundError as e:
         raise HTTPException(

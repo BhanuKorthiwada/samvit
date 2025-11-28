@@ -21,24 +21,127 @@ from app.core.security import (
 )
 from app.modules.auth.models import User, UserStatus
 from app.modules.auth.schemas import (
+    CompanyRegisterRequest,
+    CompanyRegisterResponse,
     LoginRequest,
     RegisterRequest,
     TokenResponse,
     UserCreate,
     UserUpdate,
 )
+from app.modules.tenants.models import Tenant, TenantStatus
 
 
 class AuthService:
     """Service for authentication operations."""
 
-    def __init__(self, session: AsyncSession, tenant_id: str):
+    def __init__(self, session: AsyncSession, tenant_id: str | None = None):
         self.session = session
         self.tenant_id = tenant_id
 
+    def _create_tokens(
+        self, user: User, domain: str | None = None
+    ) -> tuple[str, str, int]:
+        """Create access and refresh tokens for a user."""
+        token_data = {
+            "sub": user.id,
+            "email": user.email,
+            "tenant_id": user.tenant_id,
+        }
+
+        access_token = create_access_token(token_data, issuer=domain)
+        refresh_token = create_refresh_token(token_data, issuer=domain)
+        expires_in = settings.access_token_expire_minutes * 60
+
+        return access_token, refresh_token, expires_in
+
+    async def register_company(
+        self, data: CompanyRegisterRequest
+    ) -> CompanyRegisterResponse:
+        """Register a new company (tenant) with admin user.
+
+        This is the main signup flow for new organizations.
+        Creates: Tenant -> Admin User -> Returns tokens
+        """
+        # Build full domain
+        domain = f"{data.subdomain}.{settings.base_domain}"
+
+        # Check if domain is reserved
+        if domain in settings.reserved_domains:
+            raise EntityAlreadyExistsError(
+                "Domain", f"'{data.subdomain}' is a reserved subdomain"
+            )
+
+        # Check if domain already exists
+        existing_tenant = await self.session.execute(
+            select(Tenant).where(Tenant.domain == domain)
+        )
+        if existing_tenant.scalar_one_or_none():
+            raise EntityAlreadyExistsError("Tenant", f"Domain '{domain}' already taken")
+
+        # Check if tenant email exists
+        existing_email = await self.session.execute(
+            select(Tenant).where(Tenant.email == data.company_email)
+        )
+        if existing_email.scalar_one_or_none():
+            raise EntityAlreadyExistsError("Tenant", data.company_email)
+
+        # Create tenant
+        tenant = Tenant(
+            name=data.company_name,
+            domain=domain,
+            email=data.company_email,
+            phone=data.company_phone,
+            timezone=data.timezone,
+            country=data.country,
+            status=TenantStatus.ACTIVE.value,
+            is_active=True,
+        )
+        self.session.add(tenant)
+        await self.session.flush()
+
+        # Check if admin email exists in this tenant (shouldn't, but be safe)
+        existing_user = await self.session.execute(
+            select(User).where(
+                User.tenant_id == tenant.id,
+                User.email == data.admin_email,
+            )
+        )
+        if existing_user.scalar_one_or_none():
+            raise EntityAlreadyExistsError("User", data.admin_email)
+
+        # Create admin user
+        user = User(
+            tenant_id=tenant.id,
+            email=data.admin_email,
+            password_hash=get_password_hash(data.admin_password),
+            first_name=data.admin_first_name,
+            last_name=data.admin_last_name,
+            status=UserStatus.ACTIVE.value,
+            is_active=True,
+            email_verified=False,  # Should verify via email
+        )
+        self.session.add(user)
+        await self.session.flush()
+
+        # Create tokens with domain as issuer
+        access_token, refresh_token, expires_in = self._create_tokens(user, domain)
+
+        return CompanyRegisterResponse(
+            tenant_id=tenant.id,
+            tenant_domain=domain,
+            user_id=user.id,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_in=expires_in,
+        )
+
     async def register(self, data: RegisterRequest) -> User:
-        """Register a new user."""
-        # Check if email exists
+        """Register a new user in existing tenant (invitation flow)."""
+        if not self.tenant_id:
+            raise AuthenticationError("Tenant context required for registration")
+
+        # Check if email exists in this tenant
         existing = await self._get_user_by_email(data.email)
         if existing:
             raise EntityAlreadyExistsError("User", data.email)
@@ -50,7 +153,7 @@ class AuthService:
             first_name=data.first_name,
             last_name=data.last_name,
             phone=data.phone,
-            status=UserStatus.ACTIVE.value,  # Set to ACTIVE for testing
+            status=UserStatus.ACTIVE.value,
             is_active=True,
         )
 
@@ -61,30 +164,24 @@ class AuthService:
         return user
 
     async def register_with_tokens(
-        self, data: RegisterRequest
+        self, data: RegisterRequest, domain: str | None = None
     ) -> tuple[User, TokenResponse]:
         """Register a new user and return tokens."""
         user = await self.register(data)
 
-        # Create tokens
-        token_data = {
-            "sub": user.id,
-            "email": user.email,
-            "tenant_id": user.tenant_id,
-        }
-
-        access_token = create_access_token(token_data)
-        refresh_token = create_refresh_token(token_data)
+        access_token, refresh_token, expires_in = self._create_tokens(user, domain)
 
         tokens = TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
-            expires_in=settings.access_token_expire_minutes * 60,
+            expires_in=expires_in,
         )
 
         return user, tokens
 
-    async def login(self, data: LoginRequest) -> TokenResponse:
+    async def login(
+        self, data: LoginRequest, domain: str | None = None
+    ) -> TokenResponse:
         """Authenticate user and return tokens."""
         user = await self._get_user_by_email(data.email)
 
@@ -100,56 +197,80 @@ class AuthService:
         if user.status == UserStatus.LOCKED.value:
             raise AuthenticationError("Account is locked")
 
-        # Create tokens
-        token_data = {
-            "sub": user.id,
-            "email": user.email,
-            "tenant_id": user.tenant_id,
-        }
+        # Verify user belongs to the expected tenant (if tenant_id is set)
+        if self.tenant_id and user.tenant_id != self.tenant_id:
+            raise AuthenticationError("Invalid email or password")
 
-        access_token = create_access_token(token_data)
-        refresh_token = create_refresh_token(token_data)
+        access_token, refresh_token, expires_in = self._create_tokens(user, domain)
 
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
-            expires_in=settings.access_token_expire_minutes * 60,
+            expires_in=expires_in,
         )
 
-    async def refresh_tokens(self, refresh_token: str) -> TokenResponse:
+    async def login_with_tenant_lookup(
+        self, data: LoginRequest, domain: str
+    ) -> TokenResponse:
+        """Login by looking up tenant from domain first.
+
+        Used when tenant context is resolved from Host header.
+        """
+        # Look up tenant by domain
+        result = await self.session.execute(
+            select(Tenant).where(
+                Tenant.domain == domain,
+                Tenant.is_active.is_(True),
+            )
+        )
+        tenant = result.scalar_one_or_none()
+
+        if not tenant:
+            raise AuthenticationError("Invalid domain")
+
+        # Set tenant context
+        self.tenant_id = tenant.id
+
+        # Now perform login
+        return await self.login(data, domain)
+
+    async def refresh_tokens(
+        self, refresh_token: str, domain: str | None = None
+    ) -> TokenResponse:
         """Refresh access token using refresh token."""
         payload = decode_token(refresh_token)
         if not payload or payload.get("type") != "refresh":
             raise AuthenticationError("Invalid refresh token")
 
         user_id = payload.get("sub")
-        user = await self.get_user(user_id)
+
+        # Get user without tenant filter (trust the token)
+        result = await self.session.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise AuthenticationError("User not found")
 
         if not user.is_active:
             raise AuthenticationError("Account is inactive")
 
-        token_data = {
-            "sub": user.id,
-            "email": user.email,
-            "tenant_id": user.tenant_id,
-        }
-
-        access_token = create_access_token(token_data)
-        new_refresh_token = create_refresh_token(token_data)
+        access_token, new_refresh_token, expires_in = self._create_tokens(user, domain)
 
         return TokenResponse(
             access_token=access_token,
             refresh_token=new_refresh_token,
-            expires_in=settings.access_token_expire_minutes * 60,
+            expires_in=expires_in,
         )
 
     async def get_user(self, user_id: str) -> User:
         """Get user by ID."""
-        result = await self.session.execute(
-            select(User)
-            .options(selectinload(User.roles))
-            .where(User.id == user_id, User.tenant_id == self.tenant_id)
-        )
+        query = select(User).options(selectinload(User.roles)).where(User.id == user_id)
+
+        # Filter by tenant if set
+        if self.tenant_id:
+            query = query.where(User.tenant_id == self.tenant_id)
+
+        result = await self.session.execute(query)
         user = result.scalar_one_or_none()
         if not user:
             raise EntityNotFoundError("User", user_id)
@@ -180,6 +301,9 @@ class AuthService:
 
     async def create_user(self, data: UserCreate) -> User:
         """Create a new user (admin action)."""
+        if not self.tenant_id:
+            raise AuthenticationError("Tenant context required")
+
         existing = await self._get_user_by_email(data.email)
         if existing:
             raise EntityAlreadyExistsError("User", data.email)
@@ -237,6 +361,9 @@ class AuthService:
         limit: int = 100,
     ) -> tuple[list[User], int]:
         """List users in tenant."""
+        if not self.tenant_id:
+            raise AuthenticationError("Tenant context required")
+
         result = await self.session.execute(
             select(User)
             .where(User.tenant_id == self.tenant_id)
@@ -254,5 +381,11 @@ class AuthService:
 
     async def _get_user_by_email(self, email: str) -> User | None:
         """Get user by email within tenant."""
-        result = await self.session.execute(select(User).where(User.email == email))
+        query = select(User).where(User.email == email)
+
+        # Filter by tenant if set (email is unique per tenant)
+        if self.tenant_id:
+            query = query.where(User.tenant_id == self.tenant_id)
+
+        result = await self.session.execute(query)
         return result.scalar_one_or_none()

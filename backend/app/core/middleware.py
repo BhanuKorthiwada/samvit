@@ -22,8 +22,8 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
         request.state.request_id = request_id
 
-        # Get tenant ID if available
-        tenant_id = request.headers.get("X-Tenant-ID", "-")
+        # Get tenant ID from request state (set by TenantMiddleware via domain lookup)
+        tenant_id = getattr(request.state, "tenant_id", None) or "-"
 
         # Add to logging context
         logger_adapter = logger

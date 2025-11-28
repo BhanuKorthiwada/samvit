@@ -1,8 +1,9 @@
 """Auth schemas."""
 
+import re
 from enum import Enum
 
-from pydantic import EmailStr, Field
+from pydantic import EmailStr, Field, field_validator
 
 from app.shared.schemas import BaseSchema, TenantEntitySchema
 
@@ -38,13 +39,58 @@ class LoginRequest(BaseSchema):
 
 
 class RegisterRequest(BaseSchema):
-    """User registration request."""
+    """User registration request (for invited users)."""
 
     email: EmailStr
     password: str = Field(..., min_length=8)
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
     phone: str | None = Field(default=None, max_length=50)
+
+
+class CompanyRegisterRequest(BaseSchema):
+    """Company registration request - creates tenant + admin user."""
+
+    # Company details
+    company_name: str = Field(..., min_length=2, max_length=255)
+    subdomain: str = Field(..., min_length=2, max_length=50, pattern=r"^[a-z0-9-]+$")
+    company_email: EmailStr
+    company_phone: str | None = Field(default=None, max_length=50)
+
+    # Admin user details
+    admin_email: EmailStr
+    admin_password: str = Field(..., min_length=8)
+    admin_first_name: str = Field(..., min_length=1, max_length=100)
+    admin_last_name: str = Field(..., min_length=1, max_length=100)
+
+    # Optional settings
+    timezone: str = Field(default="Asia/Kolkata", max_length=50)
+    country: str = Field(default="India", max_length=100)
+
+    @field_validator("subdomain")
+    @classmethod
+    def validate_subdomain(cls, v: str) -> str:
+        """Validate subdomain format."""
+        v = v.lower().strip()
+        if not re.match(r"^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$", v):
+            raise ValueError(
+                "Subdomain must start and end with alphanumeric characters"
+            )
+        if "--" in v:
+            raise ValueError("Subdomain cannot contain consecutive hyphens")
+        return v
+
+
+class CompanyRegisterResponse(BaseSchema):
+    """Response after company registration."""
+
+    tenant_id: str
+    tenant_domain: str
+    user_id: str
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
 
 
 class ChangePasswordRequest(BaseSchema):

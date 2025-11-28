@@ -1,12 +1,14 @@
 /**
  * Authentication Context and Provider
+ * 
+ * Multi-tenancy is handled via domain-based identification.
+ * Users access their tenant via subdomain (e.g., acme.samvit.bhanu.dev).
  */
 
-import {  createContext, useCallback, useContext, useEffect, useState } from 'react';
-import type {ReactNode} from 'react';
-import type {CurrentUserResponse} from '@/lib/api';
-import {  authService } from '@/lib/api';
-import { apiClient } from '@/lib/api/client';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
+import type { CurrentUserResponse } from '@/lib/api';
+import { authService } from '@/lib/api';
 
 interface AuthContextType {
   user: CurrentUserResponse | null;
@@ -15,7 +17,6 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
-  setTenantId: (tenantId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,8 +33,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const userData = await authService.getCurrentUser();
       setUser(userData);
-      // Set tenant ID for subsequent API calls
-      apiClient.setTenantId(userData.tenant_id);
     } catch {
       setUser(null);
       authService.logout();
@@ -59,12 +58,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = () => {
     authService.logout();
     setUser(null);
-    apiClient.setTenantId(null);
     window.location.href = '/login';
-  };
-
-  const setTenantId = (tenantId: string) => {
-    apiClient.setTenantId(tenantId);
   };
 
   const value: AuthContextType = {
@@ -74,7 +68,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     logout,
     refreshUser,
-    setTenantId,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

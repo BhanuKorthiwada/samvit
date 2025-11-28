@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-from sqlalchemy import Boolean, Column, ForeignKey, String, Table
+from sqlalchemy import Boolean, Column, ForeignKey, String, Table, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.shared.models import BaseModel, TenantBaseModel
@@ -63,11 +63,14 @@ class User(TenantBaseModel):
 
     __tablename__ = "users"
 
-    # Auth credentials
-    email: Mapped[str] = mapped_column(
-        String(255), unique=True, nullable=False, index=True
-    )
+    # Auth credentials - email unique per tenant, not globally
+    email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "email", name="uq_user_tenant_email"),
+        {"extend_existing": True},
+    )
 
     # Profile
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)

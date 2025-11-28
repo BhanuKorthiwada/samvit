@@ -2,6 +2,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.exceptions import EntityAlreadyExistsError, EntityNotFoundError
 from app.modules.tenants.models import Tenant, TenantStatus
 from app.modules.tenants.repository import TenantRepository
@@ -17,9 +18,15 @@ class TenantService:
 
     async def create_tenant(self, data: TenantCreate) -> Tenant:
         """Create a new tenant."""
-        # Check if slug exists
-        if await self.repository.slug_exists(data.slug):
-            raise EntityAlreadyExistsError("Tenant", data.slug)
+        domain = data.domain.lower()
+
+        # Check if domain is reserved
+        if domain in settings.reserved_domains:
+            raise EntityAlreadyExistsError("Tenant", f"Domain '{domain}' is reserved")
+
+        # Check if domain exists
+        if await self.repository.domain_exists(domain):
+            raise EntityAlreadyExistsError("Tenant", domain)
 
         # Check if email exists
         existing = await self.repository.get_by_email(data.email)
@@ -28,10 +35,9 @@ class TenantService:
 
         tenant = Tenant(
             name=data.name,
-            slug=data.slug,
+            domain=domain,
             email=data.email,
             phone=data.phone,
-            domain=data.domain,
             address=data.address,
             city=data.city,
             state=data.state,
@@ -51,11 +57,11 @@ class TenantService:
             raise EntityNotFoundError("Tenant", tenant_id)
         return tenant
 
-    async def get_tenant_by_slug(self, slug: str) -> Tenant:
-        """Get tenant by slug."""
-        tenant = await self.repository.get_by_slug(slug)
+    async def get_tenant_by_domain(self, domain: str) -> Tenant:
+        """Get tenant by domain."""
+        tenant = await self.repository.get_by_domain(domain.lower())
         if not tenant:
-            raise EntityNotFoundError("Tenant", slug)
+            raise EntityNotFoundError("Tenant", domain)
         return tenant
 
     async def update_tenant(

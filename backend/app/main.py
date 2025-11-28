@@ -15,7 +15,7 @@ from sqlalchemy import text
 # Import all routers
 from app.ai.agents.router import router as ai_router
 from app.core.config import settings
-from app.core.database import AsyncSessionLocal, engine, init_db
+from app.core.database import async_session_maker, engine, init_db
 from app.core.exceptions import (
     AuthenticationError,
     AuthorizationError,
@@ -233,7 +233,7 @@ async def health_check() -> dict:
         import time
 
         start = time.perf_counter()
-        async with AsyncSessionLocal() as session:
+        async with async_session_maker() as session:
             await session.execute(text("SELECT 1"))
         db_latency_ms = (time.perf_counter() - start) * 1000
     except Exception as e:

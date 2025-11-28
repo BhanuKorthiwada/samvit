@@ -1,4 +1,15 @@
 services:
+  dragonfly:
+    image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+    ulimits:
+      memlock: -1
+    ports:
+      - "6379:6379"
+    volumes:
+      - dragonflydata:/data
+    networks:
+      - samvit
+
   backend:
     build:
       context: ./backend
@@ -11,6 +22,10 @@ services:
       - ENVIRONMENT=development
     volumes:
       - ./backend:/app
+    networks:
+      - samvit
+    depend_on:
+      - dragonfly
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -23,7 +38,16 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3010:80"
+    networks:
+      - samvit
     depends_on:
       - backend
     environment:
       - VITE_API_URL=http://localhost:8000
+
+volumes:
+  dragonflydata:
+
+networks:
+  samvit:
+    driver: bridge

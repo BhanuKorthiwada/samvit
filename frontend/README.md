@@ -102,6 +102,21 @@ The frontend proxies API requests to the backend:
 - Development: `http://localhost:3010/api/*` → `http://localhost:8000/api/*`
 - Production: Configure your reverse proxy
 
+### Multi-Tenancy
+
+SAMVIT uses **domain-based multi-tenancy**. Each tenant accesses the system via their own subdomain:
+
+- `acme.samvit.bhanu.dev` → Acme Corporation
+- `globex.samvit.bhanu.dev` → Globex Inc
+
+The browser automatically includes the correct `Host` header, so no explicit tenant identification is needed in API calls. The backend resolves the tenant from the domain.
+
+For local development, add entries to `/etc/hosts`:
+```
+127.0.0.1 acme.samvit.bhanu.dev
+127.0.0.1 globex.samvit.bhanu.dev
+```
+
 ### Making API Calls
 
 ```typescript
