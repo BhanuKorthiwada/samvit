@@ -665,3 +665,107 @@ export interface PayslipItemResponse {
 export interface PayslipDetail extends PayslipResponse {
   items: Array<PayslipItemResponse>;
 }
+
+// ============ Tenant Types ============
+
+export enum SubscriptionPlan {
+  FREE = 'free',
+  STARTER = 'starter',
+  PROFESSIONAL = 'professional',
+  ENTERPRISE = 'enterprise',
+}
+
+export enum TenantStatus {
+  ACTIVE = 'active',
+  SUSPENDED = 'suspended',
+  PENDING = 'pending',
+  CANCELLED = 'cancelled',
+}
+
+export interface TenantCreate {
+  name: string;
+  domain: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postal_code?: string;
+  timezone?: string;
+  currency?: string;
+}
+
+export interface TenantResponse {
+  id: string;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+  domain: string;
+  email: string;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  country: string;
+  postal_code: string | null;
+  plan: SubscriptionPlan;
+  status: TenantStatus;
+  max_employees: number;
+  max_users: number;
+  timezone: string;
+  currency: string;
+  date_format: string;
+  is_active: boolean;
+  logo_url: string | null;
+  primary_color: string;
+}
+
+export interface TenantPublicInfo {
+  id: string;
+  name: string;
+  domain: string;
+  logo_url: string | null;
+  primary_color: string;
+}
+
+export interface TenantSummary {
+  id: string;
+  name: string;
+  domain: string;
+  plan: SubscriptionPlan;
+  status: TenantStatus;
+  is_active: boolean;
+}
+
+// ============ Password Reset Types ============
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  new_password: string;
+}
+
+// ============ Signup Types ============
+
+export interface CompanySignupRequest {
+  // Company info
+  company_name: string;
+  domain: string;
+  company_email: string;
+  company_phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postal_code?: string;
+  // Admin user info
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+}

@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import { Link, createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { AlertCircle, Building2, Lock, LogIn, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -117,9 +117,24 @@ function LoginPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <a href="#" className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+            >
               Forgot your password?
-            </a>
+            </Link>
+          </div>
+
+          <div className="mt-4 text-center">
+            <p className="text-sm text-slate-400">
+              Don&apos;t have an account?{' '}
+              <Link
+                to="/signup"
+                className="text-cyan-400 hover:text-cyan-300 transition-colors font-medium"
+              >
+                Sign up
+              </Link>
+            </p>
           </div>
         </div>
 
