@@ -29,8 +29,6 @@ class EmployeeService:
         self.department_repo = DepartmentRepository(session, tenant_id)
         self.position_repo = PositionRepository(session, tenant_id)
 
-    # --- Department Operations ---
-
     async def create_department(self, data: DepartmentCreate) -> Department:
         """Create a new department."""
         existing = await self.department_repo.get_by_code(data.code)
@@ -77,8 +75,6 @@ class EmployeeService:
         """Delete a department."""
         department = await self.get_department(department_id)
         await self.department_repo.delete(department)
-
-    # --- Position Operations ---
 
     async def create_position(self, data: PositionCreate) -> Position:
         """Create a new position."""
@@ -128,8 +124,6 @@ class EmployeeService:
         """Delete a position."""
         position = await self.get_position(position_id)
         await self.position_repo.delete(position)
-
-    # --- Employee Operations ---
 
     async def create_employee(self, data: EmployeeCreate) -> Employee:
         """Create a new employee."""

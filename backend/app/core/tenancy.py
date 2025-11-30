@@ -4,12 +4,11 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
 from app.core.config import settings
-from app.core.database import async_session_maker, current_tenant_id, get_async_session
+from app.core.database import DbSession, async_session_maker, current_tenant_id
 
 
 class TenantContext:
@@ -31,7 +30,6 @@ def extract_domain_from_host(host: str) -> str:
         - "hr.acme.com" -> "hr.acme.com"
         - "localhost:8000" -> "localhost"
     """
-    # Remove port if present
     return host.split(":")[0].lower()
 
 
@@ -140,7 +138,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
 
 async def get_current_tenant(
     request: Request,
-    session: AsyncSession = Depends(get_async_session),
+    session: DbSession,
 ) -> TenantContext:
     """
     Get tenant context for the current request.

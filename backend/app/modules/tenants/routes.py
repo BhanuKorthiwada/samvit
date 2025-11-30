@@ -1,10 +1,11 @@
 """Tenant API routes."""
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated
 
-from app.core.database import get_async_session
-from app.core.exceptions import EntityAlreadyExistsError, EntityNotFoundError
+from fastapi import APIRouter, Depends, Request, status
+
+from app.core.database import DbSession
+from app.core.rate_limit import rate_limit
 from app.core.tenancy import extract_domain_from_host
 from app.modules.tenants.schemas import (
     TenantCreate,
@@ -20,7 +21,7 @@ router = APIRouter(prefix="/tenants", tags=["Tenants"])
 
 
 def get_tenant_service(
-    session: AsyncSession = Depends(get_async_session),
+    session: DbSession,
 ) -> TenantService:
     """Get tenant service dependency."""
     return TenantService(session)
@@ -42,20 +43,14 @@ async def get_tenant_info(
     host = request.headers.get("host", "")
     domain = extract_domain_from_host(host)
 
-    try:
-        tenant = await service.get_tenant_by_domain(domain)
-        return TenantPublicInfo(
-            id=tenant.id,
-            name=tenant.name,
-            domain=tenant.domain,
-            logo_url=tenant.logo_url,
-            primary_color=tenant.primary_color,
-        )
-    except EntityNotFoundError:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Tenant not found for domain: {domain}",
-        )
+    tenant = await service.get_tenant_by_domain(domain)
+    return TenantPublicInfo(
+        id=tenant.id,
+        name=tenant.name,
+        domain=tenant.domain,
+        logo_url=tenant.logo_url,
+        primary_color=tenant.primary_color,
+    )
 
 
 @router.post(
@@ -67,16 +62,11 @@ async def get_tenant_info(
 async def create_tenant(
     data: TenantCreate,
     service: TenantService = Depends(get_tenant_service),
+    _: Annotated[None, Depends(rate_limit(5, 60))] = None,  # 5 per minute - admin only
 ) -> TenantResponse:
     """Create a new tenant/organization."""
-    try:
-        tenant = await service.create_tenant(data)
-        return TenantResponse.model_validate(tenant)
-    except EntityAlreadyExistsError as e:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=e.message,
-        )
+    tenant = await service.create_tenant(data)
+    return TenantResponse.model_validate(tenant)
 
 
 @router.get(
@@ -106,14 +96,8 @@ async def get_tenant(
     service: TenantService = Depends(get_tenant_service),
 ) -> TenantResponse:
     """Get a specific tenant by ID."""
-    try:
-        tenant = await service.get_tenant(tenant_id)
-        return TenantResponse.model_validate(tenant)
-    except EntityNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=e.message,
-        )
+    tenant = await service.get_tenant(tenant_id)
+    return TenantResponse.model_validate(tenant)
 
 
 @router.get(
@@ -126,14 +110,8 @@ async def get_tenant_by_domain(
     service: TenantService = Depends(get_tenant_service),
 ) -> TenantResponse:
     """Get a tenant by its domain."""
-    try:
-        tenant = await service.get_tenant_by_domain(domain)
-        return TenantResponse.model_validate(tenant)
-    except EntityNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=e.message,
-        )
+    tenant = await service.get_tenant_by_domain(domain)
+    return TenantResponse.model_validate(tenant)
 
 
 @router.patch(
@@ -145,16 +123,11 @@ async def update_tenant(
     tenant_id: str,
     data: TenantUpdate,
     service: TenantService = Depends(get_tenant_service),
+    _: Annotated[None, Depends(rate_limit(20, 60))] = None,  # 20 per minute
 ) -> TenantResponse:
     """Update a tenant."""
-    try:
-        tenant = await service.update_tenant(tenant_id, data)
-        return TenantResponse.model_validate(tenant)
-    except EntityNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=e.message,
-        )
+    tenant = await service.update_tenant(tenant_id, data)
+    return TenantResponse.model_validate(tenant)
 
 
 @router.post(
@@ -165,16 +138,11 @@ async def update_tenant(
 async def activate_tenant(
     tenant_id: str,
     service: TenantService = Depends(get_tenant_service),
+    _: Annotated[None, Depends(rate_limit(10, 60))] = None,  # 10 per minute
 ) -> TenantResponse:
     """Activate a tenant."""
-    try:
-        tenant = await service.activate_tenant(tenant_id)
-        return TenantResponse.model_validate(tenant)
-    except EntityNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=e.message,
-        )
+    tenant = await service.activate_tenant(tenant_id)
+    return TenantResponse.model_validate(tenant)
 
 
 @router.post(
@@ -185,16 +153,11 @@ async def activate_tenant(
 async def suspend_tenant(
     tenant_id: str,
     service: TenantService = Depends(get_tenant_service),
+    _: Annotated[None, Depends(rate_limit(10, 60))] = None,  # 10 per minute
 ) -> TenantResponse:
     """Suspend a tenant."""
-    try:
-        tenant = await service.suspend_tenant(tenant_id)
-        return TenantResponse.model_validate(tenant)
-    except EntityNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=e.message,
-        )
+    tenant = await service.suspend_tenant(tenant_id)
+    return TenantResponse.model_validate(tenant)
 
 
 @router.delete(
@@ -205,13 +168,10 @@ async def suspend_tenant(
 async def delete_tenant(
     tenant_id: str,
     service: TenantService = Depends(get_tenant_service),
+    _: Annotated[
+        None, Depends(rate_limit(5, 60))
+    ] = None,  # 5 per minute - critical operation
 ) -> SuccessResponse:
     """Delete a tenant."""
-    try:
-        await service.delete_tenant(tenant_id)
-        return SuccessResponse(message="Tenant deleted successfully")
-    except EntityNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=e.message,
-        )
+    await service.delete_tenant(tenant_id)
+    return SuccessResponse(message="Tenant deleted successfully")

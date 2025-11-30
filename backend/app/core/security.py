@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated, Literal
 
 import bcrypt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
@@ -192,19 +192,55 @@ def _get_validated_payload(
     return payload
 
 
+async def _check_token_revoked(token: str, payload: dict) -> None:
+    """Check if token is revoked (individual or user-level). Raises 401 if revoked."""
+    from app.core.token_blacklist import token_blacklist
+
+    # Check individual token revocation
+    if await token_blacklist.is_revoked(token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Check user-level token revocation (e.g., password change, account compromise)
+    user_id = payload.get("sub")
+    issued_at = payload.get("iat")
+    if user_id and issued_at:
+        if await token_blacklist.is_user_tokens_revoked(user_id, int(issued_at)):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="All sessions have been revoked. Please log in again.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+
 async def get_current_user_id(
+    request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
 ) -> str:
     """Get current user ID from JWT token. Raises 401 if not authenticated."""
     payload = _get_validated_payload(credentials)
+    await _check_token_revoked(credentials.credentials, payload)
+
+    # Set user_id on request.state for per_user rate limiting
+    request.state.user_id = payload["sub"]
+
     return payload["sub"]
 
 
 async def get_current_user(
+    request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
 ) -> UserContext:
     """Get current user context from JWT token. Raises 401 if not authenticated."""
     payload = _get_validated_payload(credentials)
+    await _check_token_revoked(credentials.credentials, payload)
+
+    # Set user_id on request.state for per_user rate limiting
+    request.state.user_id = payload["sub"]
+
     return UserContext(
         id=payload["sub"],
         email=payload.get("email"),

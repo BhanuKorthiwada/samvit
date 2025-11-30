@@ -1,1 +1,1 @@
-"""Core module - database, config, security, tenancy, exceptions."""
+"""Core module - database, config, security, tenancy, exceptions, caching."""

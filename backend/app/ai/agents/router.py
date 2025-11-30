@@ -1,16 +1,22 @@
 """AI Agents router."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
-from sqlalchemy.ext.asyncio import AsyncSession
+import logging
+from typing import Annotated
 
-from app.ai.agents.base import AgentContext
-from app.ai.agents.hr_assistant import HRAssistantAgent
-from app.core.database import get_async_session
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel, Field
+
+from app.ai.agents.langgraph.routes import router as leave_workflow_router
+from app.ai.agents.pydantic_ai.hr_agent import HRAgentResponse, process_message
+from app.core.database import DbSession
+from app.core.rate_limit import rate_limit
 from app.core.security import CurrentUser
 from app.core.tenancy import TenantDep
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/ai", tags=["AI Agents"])
+router.include_router(leave_workflow_router)
 
 
 class ChatRequest(BaseModel):
@@ -38,43 +44,35 @@ async def chat_with_assistant(
     request: ChatRequest,
     current_user: CurrentUser,
     tenant: TenantDep,
-    session: AsyncSession = Depends(get_async_session),
+    session: DbSession,
+    _: Annotated[None, Depends(rate_limit(20, 60))] = None,
 ) -> ChatResponse:
     """
     Chat with the HR Assistant agent.
 
     The agent can help with:
-    - Leave management (balance, applications)
+    - Leave management (balance inquiries)
     - Attendance queries
     - Payslip information
     - Holiday calendar
     - Team availability
     """
-    # Create agent context
-    context = AgentContext(
-        tenant_id=tenant.tenant_id,
-        user_id=current_user.id,
-        employee_id=current_user.id,  # Simplified - would map user to employee
+    response: HRAgentResponse = await process_message(
+        message=request.message,
         session=session,
+        tenant_id=tenant.tenant_id,
+        employee_id=current_user.id,
+        user_id=current_user.id,
     )
 
-    # Create and use agent
-    agent = HRAssistantAgent(context)
-
-    try:
-        response = await agent.process_message(request.message)
-
-        return ChatResponse(
-            message=response.message,
-            follow_up_questions=response.follow_up_questions,
-            data=response.data,
-            conversation_id=request.conversation_id,
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Agent error: {str(e)}",
-        )
+    return ChatResponse(
+        message=response.message,
+        follow_up_questions=response.follow_up_questions
+        if response.follow_up_questions
+        else None,
+        data=response.data,
+        conversation_id=request.conversation_id,
+    )
 
 
 @router.get(

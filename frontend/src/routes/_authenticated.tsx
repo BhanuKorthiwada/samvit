@@ -3,6 +3,9 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { Separator } from '@/components/ui/separator'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
+import { CommandMenu } from '@/components/layout/command-menu'
+import { Breadcrumbs } from '@/components/layout/breadcrumbs'
+import { NotificationCenter } from '@/components/layout/notification-center'
 
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: () => {
@@ -22,8 +25,11 @@ function AuthenticatedLayout() {
           <div className='flex items-center gap-2 px-4'>
             <SidebarTrigger className='-ml-1' />
             <Separator orientation='vertical' className='mr-2 h-4' />
+            <Breadcrumbs />
           </div>
           <div className='ml-auto flex items-center gap-2 px-4'>
+            <CommandMenu />
+            <NotificationCenter />
             <ThemeToggle />
           </div>
         </header>

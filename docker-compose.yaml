@@ -10,6 +10,19 @@ services:
     networks:
       - samvit
 
+  postgres:
+    image: postgres:18.1
+    environment:
+      POSTGRES_USER: samvituser
+      POSTGRES_PASSWORD: samvitpassword
+      POSTGRES_DB: samvitdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    networks:
+      - samvit
+
   backend:
     build:
       context: ./backend
@@ -24,8 +37,11 @@ services:
       - ./backend:/app
     networks:
       - samvit
-    depend_on:
-      - dragonfly
+    depends_on:
+      dragonfly:
+        condition: service_healthy
+      postgres:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -47,6 +63,7 @@ services:
 
 volumes:
   dragonflydata:
+  pgdata:
 
 networks:
   samvit:

@@ -1,10 +1,11 @@
 """Employee API routes."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated
 
-from app.core.database import get_async_session
-from app.core.exceptions import EntityAlreadyExistsError, EntityNotFoundError
+from fastapi import APIRouter, Depends, Query, status
+
+from app.core.database import DbSession
+from app.core.rate_limit import rate_limit
 from app.core.tenancy import TenantDep
 from app.modules.employees.schemas import (
     DepartmentCreate,
@@ -23,8 +24,6 @@ from app.modules.employees.schemas import (
 from app.modules.employees.service import EmployeeService
 from app.shared.schemas import PaginatedResponse, SuccessResponse
 
-# --- Routers ---
-
 department_router = APIRouter(prefix="/departments", tags=["Departments"])
 position_router = APIRouter(prefix="/positions", tags=["Positions"])
 employee_router = APIRouter(prefix="/employees", tags=["Employees"])
@@ -32,13 +31,10 @@ employee_router = APIRouter(prefix="/employees", tags=["Employees"])
 
 def get_employee_service(
     tenant: TenantDep,
-    session: AsyncSession = Depends(get_async_session),
+    session: DbSession,
 ) -> EmployeeService:
     """Get employee service dependency."""
     return EmployeeService(session, tenant.tenant_id)
-
-
-# --- Department Routes ---
 
 
 @department_router.post(
@@ -50,13 +46,11 @@ def get_employee_service(
 async def create_department(
     data: DepartmentCreate,
     service: EmployeeService = Depends(get_employee_service),
+    _: Annotated[None, Depends(rate_limit(20, 60))] = None,  # 20 per minute
 ) -> DepartmentResponse:
     """Create a new department."""
-    try:
-        department = await service.create_department(data)
-        return DepartmentResponse.model_validate(department)
-    except EntityAlreadyExistsError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=e.message)
+    department = await service.create_department(data)
+    return DepartmentResponse.model_validate(department)
 
 
 @department_router.get(
@@ -86,11 +80,8 @@ async def get_department(
     service: EmployeeService = Depends(get_employee_service),
 ) -> DepartmentResponse:
     """Get department by ID."""
-    try:
-        department = await service.get_department(department_id)
-        return DepartmentResponse.model_validate(department)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    department = await service.get_department(department_id)
+    return DepartmentResponse.model_validate(department)
 
 
 @department_router.patch(
@@ -102,13 +93,11 @@ async def update_department(
     department_id: str,
     data: DepartmentUpdate,
     service: EmployeeService = Depends(get_employee_service),
+    _: Annotated[None, Depends(rate_limit(30, 60))] = None,  # 30 per minute
 ) -> DepartmentResponse:
     """Update a department."""
-    try:
-        department = await service.update_department(department_id, data)
-        return DepartmentResponse.model_validate(department)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    department = await service.update_department(department_id, data)
+    return DepartmentResponse.model_validate(department)
 
 
 @department_router.delete(
@@ -121,14 +110,8 @@ async def delete_department(
     service: EmployeeService = Depends(get_employee_service),
 ) -> SuccessResponse:
     """Delete a department."""
-    try:
-        await service.delete_department(department_id)
-        return SuccessResponse(message="Department deleted successfully")
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
-
-
-# --- Position Routes ---
+    await service.delete_department(department_id)
+    return SuccessResponse(message="Department deleted successfully")
 
 
 @position_router.post(
@@ -140,13 +123,11 @@ async def delete_department(
 async def create_position(
     data: PositionCreate,
     service: EmployeeService = Depends(get_employee_service),
+    _: Annotated[None, Depends(rate_limit(20, 60))] = None,  # 20 per minute
 ) -> PositionResponse:
     """Create a new position."""
-    try:
-        position = await service.create_position(data)
-        return PositionResponse.model_validate(position)
-    except EntityAlreadyExistsError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=e.message)
+    position = await service.create_position(data)
+    return PositionResponse.model_validate(position)
 
 
 @position_router.get(
@@ -176,11 +157,8 @@ async def get_position(
     service: EmployeeService = Depends(get_employee_service),
 ) -> PositionResponse:
     """Get position by ID."""
-    try:
-        position = await service.get_position(position_id)
-        return PositionResponse.model_validate(position)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    position = await service.get_position(position_id)
+    return PositionResponse.model_validate(position)
 
 
 @position_router.patch(
@@ -192,13 +170,11 @@ async def update_position(
     position_id: str,
     data: PositionUpdate,
     service: EmployeeService = Depends(get_employee_service),
+    _: Annotated[None, Depends(rate_limit(30, 60))] = None,  # 30 per minute
 ) -> PositionResponse:
     """Update a position."""
-    try:
-        position = await service.update_position(position_id, data)
-        return PositionResponse.model_validate(position)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    position = await service.update_position(position_id, data)
+    return PositionResponse.model_validate(position)
 
 
 @position_router.delete(
@@ -211,14 +187,8 @@ async def delete_position(
     service: EmployeeService = Depends(get_employee_service),
 ) -> SuccessResponse:
     """Delete a position."""
-    try:
-        await service.delete_position(position_id)
-        return SuccessResponse(message="Position deleted successfully")
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
-
-
-# --- Employee Routes ---
+    await service.delete_position(position_id)
+    return SuccessResponse(message="Position deleted successfully")
 
 
 @employee_router.post(
@@ -230,13 +200,11 @@ async def delete_position(
 async def create_employee(
     data: EmployeeCreate,
     service: EmployeeService = Depends(get_employee_service),
+    _: Annotated[None, Depends(rate_limit(20, 60))] = None,  # 20 per minute
 ) -> EmployeeResponse:
     """Create a new employee."""
-    try:
-        employee = await service.create_employee(data)
-        return EmployeeResponse.model_validate(employee)
-    except EntityAlreadyExistsError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=e.message)
+    employee = await service.create_employee(data)
+    return EmployeeResponse.model_validate(employee)
 
 
 @employee_router.get(
@@ -297,11 +265,8 @@ async def get_employee(
     service: EmployeeService = Depends(get_employee_service),
 ) -> EmployeeResponse:
     """Get employee by ID."""
-    try:
-        employee = await service.get_employee_with_details(employee_id)
-        return EmployeeResponse.model_validate(employee)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    employee = await service.get_employee_with_details(employee_id)
+    return EmployeeResponse.model_validate(employee)
 
 
 @employee_router.patch(
@@ -313,13 +278,11 @@ async def update_employee(
     employee_id: str,
     data: EmployeeUpdate,
     service: EmployeeService = Depends(get_employee_service),
+    _: Annotated[None, Depends(rate_limit(30, 60))] = None,  # 30 per minute
 ) -> EmployeeResponse:
     """Update an employee."""
-    try:
-        employee = await service.update_employee(employee_id, data)
-        return EmployeeResponse.model_validate(employee)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    employee = await service.update_employee(employee_id, data)
+    return EmployeeResponse.model_validate(employee)
 
 
 @employee_router.get(
@@ -346,8 +309,5 @@ async def deactivate_employee(
     service: EmployeeService = Depends(get_employee_service),
 ) -> EmployeeResponse:
     """Deactivate an employee."""
-    try:
-        employee = await service.deactivate_employee(employee_id)
-        return EmployeeResponse.model_validate(employee)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    employee = await service.deactivate_employee(employee_id)
+    return EmployeeResponse.model_validate(employee)

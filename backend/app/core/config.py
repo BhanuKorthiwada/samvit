@@ -61,10 +61,14 @@ class Settings(BaseSettings):
     # Rate Limiting
     rate_limit_per_minute: int = 60
 
+    # Redis
+    redis_url: str = "redis://localhost:6379/0"
+
     # AI/LLM
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
     google_api_key: str | None = None
+    ai_model: str = "openai:gpt-4o-mini"  # Default model for Pydantic AI agents
 
     @field_validator("secret_key")
     @classmethod

@@ -2,7 +2,7 @@ import { Outlet, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
-import { ErrorBoundary, RouteErrorFallback } from '../components/ErrorBoundary'
+import { ErrorBoundary, RouteErrorFallback } from '../components/error-boundary'
 
 export const Route = createRootRoute({
   component: RootComponent,

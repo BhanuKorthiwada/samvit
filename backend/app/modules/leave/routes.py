@@ -1,10 +1,11 @@
 """Leave management API routes."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated
 
-from app.core.database import get_async_session
-from app.core.exceptions import BusinessRuleViolationError, EntityNotFoundError
+from fastapi import APIRouter, Depends, Query, status
+
+from app.core.database import DbSession
+from app.core.rate_limit import rate_limit
 from app.core.security import CurrentUserId
 from app.core.tenancy import TenantDep
 from app.modules.leave.schemas import (
@@ -26,7 +27,7 @@ router = APIRouter(prefix="/leave", tags=["Leave Management"])
 
 def get_leave_service(
     tenant: TenantDep,
-    session: AsyncSession = Depends(get_async_session),
+    session: DbSession,
 ) -> LeaveService:
     """Get leave service dependency."""
     return LeaveService(session, tenant.tenant_id)
@@ -44,6 +45,7 @@ def get_leave_service(
 async def create_policy(
     data: LeavePolicyCreate,
     service: LeaveService = Depends(get_leave_service),
+    _: Annotated[None, Depends(rate_limit(10, 60))] = None,  # 10 per minute
 ) -> LeavePolicyResponse:
     """Create a new leave policy."""
     policy = await service.create_policy(data)
@@ -74,11 +76,8 @@ async def get_policy(
     service: LeaveService = Depends(get_leave_service),
 ) -> LeavePolicyResponse:
     """Get leave policy by ID."""
-    try:
-        policy = await service.get_policy(policy_id)
-        return LeavePolicyResponse.model_validate(policy)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    policy = await service.get_policy(policy_id)
+    return LeavePolicyResponse.model_validate(policy)
 
 
 @router.patch(
@@ -90,13 +89,11 @@ async def update_policy(
     policy_id: str,
     data: LeavePolicyUpdate,
     service: LeaveService = Depends(get_leave_service),
+    _: Annotated[None, Depends(rate_limit(20, 60))] = None,  # 20 per minute
 ) -> LeavePolicyResponse:
     """Update a leave policy."""
-    try:
-        policy = await service.update_policy(policy_id, data)
-        return LeavePolicyResponse.model_validate(policy)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    policy = await service.update_policy(policy_id, data)
+    return LeavePolicyResponse.model_validate(policy)
 
 
 # --- Leave Balance Routes ---
@@ -141,6 +138,7 @@ async def initialize_balances(
     employee_id: str,
     year: int | None = Query(default=None),
     service: LeaveService = Depends(get_leave_service),
+    _: Annotated[None, Depends(rate_limit(20, 60))] = None,  # 20 per minute
 ) -> list[LeaveBalanceResponse]:
     """Initialize leave balances for an employee."""
     balances = await service.initialize_balances(employee_id, year)
@@ -160,13 +158,11 @@ async def create_request(
     data: LeaveRequestCreate,
     user_id: CurrentUserId,
     service: LeaveService = Depends(get_leave_service),
+    _: Annotated[None, Depends(rate_limit(10, 60))] = None,  # 10 per minute
 ) -> LeaveRequestResponse:
     """Create a new leave request."""
-    try:
-        request = await service.create_request(user_id, data)
-        return LeaveRequestResponse.model_validate(request)
-    except BusinessRuleViolationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
+    request = await service.create_request(user_id, data)
+    return LeaveRequestResponse.model_validate(request)
 
 
 @router.get(
@@ -209,11 +205,8 @@ async def get_request(
     service: LeaveService = Depends(get_leave_service),
 ) -> LeaveRequestResponse:
     """Get leave request by ID."""
-    try:
-        request = await service.get_request(request_id)
-        return LeaveRequestResponse.model_validate(request)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    request = await service.get_request(request_id)
+    return LeaveRequestResponse.model_validate(request)
 
 
 @router.post(
@@ -226,18 +219,11 @@ async def process_approval(
     data: LeaveApproval,
     user_id: CurrentUserId,
     service: LeaveService = Depends(get_leave_service),
+    _: Annotated[None, Depends(rate_limit(30, 60))] = None,  # 30 per minute
 ) -> LeaveRequestResponse:
     """Approve or reject a leave request."""
-    try:
-        request = await service.process_approval(request_id, user_id, data)
-        return LeaveRequestResponse.model_validate(request)
-    except (EntityNotFoundError, BusinessRuleViolationError) as e:
-        status_code = (
-            status.HTTP_404_NOT_FOUND
-            if isinstance(e, EntityNotFoundError)
-            else status.HTTP_400_BAD_REQUEST
-        )
-        raise HTTPException(status_code=status_code, detail=e.message)
+    request = await service.process_approval(request_id, user_id, data)
+    return LeaveRequestResponse.model_validate(request)
 
 
 @router.post(
@@ -249,18 +235,11 @@ async def cancel_request(
     request_id: str,
     user_id: CurrentUserId,
     service: LeaveService = Depends(get_leave_service),
+    _: Annotated[None, Depends(rate_limit(10, 60))] = None,  # 10 per minute
 ) -> LeaveRequestResponse:
     """Cancel a leave request."""
-    try:
-        request = await service.cancel_request(request_id, user_id)
-        return LeaveRequestResponse.model_validate(request)
-    except (EntityNotFoundError, BusinessRuleViolationError) as e:
-        status_code = (
-            status.HTTP_404_NOT_FOUND
-            if isinstance(e, EntityNotFoundError)
-            else status.HTTP_400_BAD_REQUEST
-        )
-        raise HTTPException(status_code=status_code, detail=e.message)
+    request = await service.cancel_request(request_id, user_id)
+    return LeaveRequestResponse.model_validate(request)
 
 
 # --- Holiday Routes ---
@@ -275,6 +254,7 @@ async def cancel_request(
 async def create_holiday(
     data: HolidayCreate,
     service: LeaveService = Depends(get_leave_service),
+    _: Annotated[None, Depends(rate_limit(20, 60))] = None,  # 20 per minute
 ) -> HolidayResponse:
     """Create a new holiday."""
     holiday = await service.create_holiday(data)

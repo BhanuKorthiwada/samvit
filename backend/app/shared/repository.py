@@ -143,7 +143,6 @@ class TenantRepository(Generic[TenantModelType]):
 
     async def create(self, entity: TenantModelType) -> TenantModelType:
         """Create a new entity with tenant_id."""
-        # Ensure tenant_id is set
         entity.tenant_id = self.tenant_id
         current_tenant_id.set(self.tenant_id)
 

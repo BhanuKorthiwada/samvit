@@ -1,12 +1,12 @@
 """Attendance API routes."""
 
 from datetime import date
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, Query, Request, status
 
-from app.core.database import get_async_session
-from app.core.exceptions import BusinessRuleViolationError, EntityNotFoundError
+from app.core.database import DbSession
+from app.core.rate_limit import rate_limit
 from app.core.security import CurrentUserId
 from app.core.tenancy import TenantDep
 from app.modules.attendance.schemas import (
@@ -27,13 +27,10 @@ router = APIRouter(prefix="/attendance", tags=["Attendance"])
 
 def get_attendance_service(
     tenant: TenantDep,
-    session: AsyncSession = Depends(get_async_session),
+    session: DbSession,
 ) -> AttendanceService:
     """Get attendance service dependency."""
     return AttendanceService(session, tenant.tenant_id)
-
-
-# --- Shift Routes ---
 
 
 @router.post(
@@ -45,6 +42,7 @@ def get_attendance_service(
 async def create_shift(
     data: ShiftCreate,
     service: AttendanceService = Depends(get_attendance_service),
+    _: Annotated[None, Depends(rate_limit(10, 60))] = None,  # 10 per minute
 ) -> ShiftResponse:
     """Create a new shift."""
     shift = await service.create_shift(data)
@@ -74,11 +72,8 @@ async def get_shift(
     service: AttendanceService = Depends(get_attendance_service),
 ) -> ShiftResponse:
     """Get shift by ID."""
-    try:
-        shift = await service.get_shift(shift_id)
-        return ShiftResponse.model_validate(shift)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    shift = await service.get_shift(shift_id)
+    return ShiftResponse.model_validate(shift)
 
 
 @router.patch(
@@ -90,16 +85,11 @@ async def update_shift(
     shift_id: str,
     data: ShiftUpdate,
     service: AttendanceService = Depends(get_attendance_service),
+    _: Annotated[None, Depends(rate_limit(20, 60))] = None,  # 20 per minute
 ) -> ShiftResponse:
     """Update a shift."""
-    try:
-        shift = await service.update_shift(shift_id, data)
-        return ShiftResponse.model_validate(shift)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
-
-
-# --- Clock In/Out Routes ---
+    shift = await service.update_shift(shift_id, data)
+    return ShiftResponse.model_validate(shift)
 
 
 @router.post(
@@ -112,14 +102,14 @@ async def clock_in(
     data: ClockInRequest,
     user_id: CurrentUserId,
     service: AttendanceService = Depends(get_attendance_service),
+    _: Annotated[
+        None, Depends(rate_limit(10, 60))
+    ] = None,  # 10 per minute - prevent spam
 ) -> TimeEntryResponse:
     """Record clock in."""
-    try:
-        ip_address = request.client.host if request.client else None
-        entry = await service.clock_in(data, user_id, ip_address)
-        return TimeEntryResponse.model_validate(entry)
-    except BusinessRuleViolationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
+    ip_address = request.client.host if request.client else None
+    entry = await service.clock_in(data, user_id, ip_address)
+    return TimeEntryResponse.model_validate(entry)
 
 
 @router.post(
@@ -132,17 +122,12 @@ async def clock_out(
     data: ClockOutRequest,
     user_id: CurrentUserId,
     service: AttendanceService = Depends(get_attendance_service),
+    _: Annotated[None, Depends(rate_limit(10, 60))] = None,  # 10 per minute
 ) -> TimeEntryResponse:
     """Record clock out."""
-    try:
-        ip_address = request.client.host if request.client else None
-        entry = await service.clock_out(data, user_id, ip_address)
-        return TimeEntryResponse.model_validate(entry)
-    except BusinessRuleViolationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
-
-
-# --- Attendance Routes ---
+    ip_address = request.client.host if request.client else None
+    entry = await service.clock_out(data, user_id, ip_address)
+    return TimeEntryResponse.model_validate(entry)
 
 
 @router.get(
@@ -187,6 +172,7 @@ async def regularize_attendance(
     attendance_date: date,
     data: AttendanceRegularize,
     service: AttendanceService = Depends(get_attendance_service),
+    _: Annotated[None, Depends(rate_limit(20, 60))] = None,  # 20 per minute
 ) -> AttendanceResponse:
     """Regularize attendance (correct times with reason)."""
     attendance = await service.regularize_attendance(employee_id, attendance_date, data)

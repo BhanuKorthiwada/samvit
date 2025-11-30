@@ -33,8 +33,6 @@ class PayrollService:
         self.session = session
         self.tenant_id = tenant_id
 
-    # --- Salary Component Operations ---
-
     async def create_component(self, data: SalaryComponentCreate) -> SalaryComponent:
         """Create a salary component."""
         component = SalaryComponent(
@@ -92,8 +90,6 @@ class PayrollService:
         await self.session.refresh(component)
         return component
 
-    # --- Salary Structure Operations ---
-
     async def create_structure(self, data: SalaryStructureCreate) -> SalaryStructure:
         """Create a salary structure."""
         structure = SalaryStructure(
@@ -131,8 +127,6 @@ class PayrollService:
             query = query.where(SalaryStructure.is_active.is_(True))
         result = await self.session.execute(query)
         return list(result.scalars().all())
-
-    # --- Employee Salary Operations ---
 
     async def assign_salary(self, data: EmployeeSalaryCreate) -> EmployeeSalary:
         """Assign salary structure to employee."""
@@ -209,8 +203,6 @@ class PayrollService:
             current.is_current = False
             current.effective_to = date.today()
 
-    # --- Payroll Period Operations ---
-
     async def create_period(self, data: PayrollPeriodCreate) -> PayrollPeriod:
         """Create a payroll period."""
         name = f"Payroll - {data.month:02d}/{data.year}"
@@ -251,8 +243,6 @@ class PayrollService:
         query = query.order_by(PayrollPeriod.year.desc(), PayrollPeriod.month.desc())
         result = await self.session.execute(query)
         return list(result.scalars().all())
-
-    # --- Payslip Operations ---
 
     async def generate_payslips(self, period_id: str) -> list[Payslip]:
         """Generate payslips for a payroll period."""

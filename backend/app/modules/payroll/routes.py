@@ -1,10 +1,11 @@
 """Payroll API routes."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated
 
-from app.core.database import get_async_session
-from app.core.exceptions import BusinessRuleViolationError, EntityNotFoundError
+from fastapi import APIRouter, Depends, Query, status
+
+from app.core.database import DbSession
+from app.core.rate_limit import rate_limit
 from app.core.security import CurrentUserId
 from app.core.tenancy import TenantDep
 from app.modules.payroll.schemas import (
@@ -27,7 +28,7 @@ router = APIRouter(prefix="/payroll", tags=["Payroll"])
 
 def get_payroll_service(
     tenant: TenantDep,
-    session: AsyncSession = Depends(get_async_session),
+    session: DbSession,
 ) -> PayrollService:
     """Get payroll service dependency."""
     return PayrollService(session, tenant.tenant_id)
@@ -45,6 +46,7 @@ def get_payroll_service(
 async def create_component(
     data: SalaryComponentCreate,
     service: PayrollService = Depends(get_payroll_service),
+    _: Annotated[None, Depends(rate_limit(10, 60))] = None,  # 10 per minute
 ) -> SalaryComponentResponse:
     """Create a new salary component."""
     component = await service.create_component(data)
@@ -75,11 +77,8 @@ async def get_component(
     service: PayrollService = Depends(get_payroll_service),
 ) -> SalaryComponentResponse:
     """Get salary component by ID."""
-    try:
-        component = await service.get_component(component_id)
-        return SalaryComponentResponse.model_validate(component)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    component = await service.get_component(component_id)
+    return SalaryComponentResponse.model_validate(component)
 
 
 @router.patch(
@@ -91,13 +90,11 @@ async def update_component(
     component_id: str,
     data: SalaryComponentUpdate,
     service: PayrollService = Depends(get_payroll_service),
+    _: Annotated[None, Depends(rate_limit(20, 60))] = None,  # 20 per minute
 ) -> SalaryComponentResponse:
     """Update a salary component."""
-    try:
-        component = await service.update_component(component_id, data)
-        return SalaryComponentResponse.model_validate(component)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    component = await service.update_component(component_id, data)
+    return SalaryComponentResponse.model_validate(component)
 
 
 # --- Salary Structure Routes ---
@@ -112,6 +109,7 @@ async def update_component(
 async def create_structure(
     data: SalaryStructureCreate,
     service: PayrollService = Depends(get_payroll_service),
+    _: Annotated[None, Depends(rate_limit(10, 60))] = None,  # 10 per minute
 ) -> SalaryStructureResponse:
     """Create a new salary structure."""
     structure = await service.create_structure(data)
@@ -142,11 +140,8 @@ async def get_structure(
     service: PayrollService = Depends(get_payroll_service),
 ) -> SalaryStructureResponse:
     """Get salary structure by ID."""
-    try:
-        structure = await service.get_structure(structure_id)
-        return SalaryStructureResponse.model_validate(structure)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    structure = await service.get_structure(structure_id)
+    return SalaryStructureResponse.model_validate(structure)
 
 
 # --- Employee Salary Routes ---
@@ -161,6 +156,7 @@ async def get_structure(
 async def assign_salary(
     data: EmployeeSalaryCreate,
     service: PayrollService = Depends(get_payroll_service),
+    _: Annotated[None, Depends(rate_limit(20, 60))] = None,  # 20 per minute
 ) -> EmployeeSalaryResponse:
     """Assign salary structure to an employee."""
     salary = await service.assign_salary(data)
@@ -209,6 +205,7 @@ async def get_employee_salary_history(
 async def create_period(
     data: PayrollPeriodCreate,
     service: PayrollService = Depends(get_payroll_service),
+    _: Annotated[None, Depends(rate_limit(5, 60))] = None,  # 5 per minute
 ) -> PayrollPeriodResponse:
     """Create a new payroll period."""
     period = await service.create_period(data)
@@ -239,11 +236,8 @@ async def get_period(
     service: PayrollService = Depends(get_payroll_service),
 ) -> PayrollPeriodResponse:
     """Get payroll period by ID."""
-    try:
-        period = await service.get_period(period_id)
-        return PayrollPeriodResponse.model_validate(period)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    period = await service.get_period(period_id)
+    return PayrollPeriodResponse.model_validate(period)
 
 
 @router.post(
@@ -254,18 +248,13 @@ async def get_period(
 async def generate_payslips(
     period_id: str,
     service: PayrollService = Depends(get_payroll_service),
+    _: Annotated[
+        None, Depends(rate_limit(2, 60))
+    ] = None,  # 2 per minute - expensive operation
 ) -> list[PayslipResponse]:
     """Generate payslips for a payroll period."""
-    try:
-        payslips = await service.generate_payslips(period_id)
-        return [PayslipResponse.model_validate(p) for p in payslips]
-    except (EntityNotFoundError, BusinessRuleViolationError) as e:
-        status_code = (
-            status.HTTP_404_NOT_FOUND
-            if isinstance(e, EntityNotFoundError)
-            else status.HTTP_400_BAD_REQUEST
-        )
-        raise HTTPException(status_code=status_code, detail=e.message)
+    payslips = await service.generate_payslips(period_id)
+    return [PayslipResponse.model_validate(p) for p in payslips]
 
 
 @router.post(
@@ -276,18 +265,11 @@ async def generate_payslips(
 async def approve_payroll(
     period_id: str,
     service: PayrollService = Depends(get_payroll_service),
+    _: Annotated[None, Depends(rate_limit(5, 60))] = None,  # 5 per minute
 ) -> PayrollPeriodResponse:
     """Approve payroll for a period."""
-    try:
-        period = await service.approve_payroll(period_id)
-        return PayrollPeriodResponse.model_validate(period)
-    except (EntityNotFoundError, BusinessRuleViolationError) as e:
-        status_code = (
-            status.HTTP_404_NOT_FOUND
-            if isinstance(e, EntityNotFoundError)
-            else status.HTTP_400_BAD_REQUEST
-        )
-        raise HTTPException(status_code=status_code, detail=e.message)
+    period = await service.approve_payroll(period_id)
+    return PayrollPeriodResponse.model_validate(period)
 
 
 @router.get(
@@ -300,11 +282,8 @@ async def get_payroll_summary(
     service: PayrollService = Depends(get_payroll_service),
 ) -> PayrollSummary:
     """Get payroll summary for a period."""
-    try:
-        summary = await service.get_payroll_summary(period_id)
-        return PayrollSummary(**summary)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    summary = await service.get_payroll_summary(period_id)
+    return PayrollSummary(**summary)
 
 
 # --- Payslip Routes ---
@@ -335,8 +314,5 @@ async def get_payslip(
     service: PayrollService = Depends(get_payroll_service),
 ) -> PayslipResponse:
     """Get payslip by ID."""
-    try:
-        payslip = await service.get_payslip(payslip_id)
-        return PayslipResponse.model_validate(payslip)
-    except EntityNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    payslip = await service.get_payslip(payslip_id)
+    return PayslipResponse.model_validate(payslip)

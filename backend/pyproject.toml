@@ -21,6 +21,10 @@ dependencies = [
     "google-adk>=1.18.0",
     "pydantic-ai-slim[anthropic,fastmcp,google,groq,mcp,openai]>=1.24.0",
     "aiosqlite>=0.21.0",
+    "redis>=5.2.0",
+    "bleach>=6.2.0",
+    "langgraph-checkpoint-postgres>=3.0.1",
+    "psycopg-binary>=3.2.13",
 ]
 
 [dependency-groups]

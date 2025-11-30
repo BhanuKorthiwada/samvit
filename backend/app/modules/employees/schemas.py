@@ -46,9 +46,6 @@ class MaritalStatus(str, Enum):
     WIDOWED = "widowed"
 
 
-# --- Department Schemas ---
-
-
 class DepartmentCreate(BaseSchema):
     """Create department schema."""
 
@@ -87,9 +84,6 @@ class DepartmentSummary(BaseSchema):
     id: str
     name: str
     code: str
-
-
-# --- Position Schemas ---
 
 
 class PositionCreate(BaseSchema):
@@ -137,9 +131,6 @@ class PositionSummary(BaseSchema):
     title: str
     code: str
     level: int
-
-
-# --- Employee Schemas ---
 
 
 class EmployeeCreate(BaseSchema):

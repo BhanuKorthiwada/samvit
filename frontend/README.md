@@ -59,7 +59,7 @@ The app runs at **http://localhost:3010**
 src/
 ├── components/         # Reusable components
 │   ├── ui/            # shadcn/ui components
-│   ├── ErrorBoundary.tsx
+│   ├── error-boundary.tsx
 │   └── Header.tsx
 ├── contexts/          # React contexts
 │   └── AuthContext.tsx

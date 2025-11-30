@@ -29,8 +29,6 @@ class AttendanceService:
         self.session = session
         self.tenant_id = tenant_id
 
-    # --- Shift Operations ---
-
     async def create_shift(self, data: ShiftCreate) -> Shift:
         """Create a new shift."""
         shift = Shift(
@@ -78,8 +76,6 @@ class AttendanceService:
         await self.session.flush()
         await self.session.refresh(shift)
         return shift
-
-    # --- Clock In/Out Operations ---
 
     async def clock_in(
         self,
@@ -178,8 +174,6 @@ class AttendanceService:
         await self.session.flush()
         await self.session.refresh(time_entry)
         return time_entry
-
-    # --- Attendance Operations ---
 
     async def get_attendance(
         self,
