@@ -1,43 +1,50 @@
-import { Link, createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { AlertCircle, Building2, Lock, LogIn, User } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import {
+  Link,
+  createFileRoute,
+  redirect,
+  useNavigate,
+} from '@tanstack/react-router'
+import { useState } from 'react'
+import { AlertCircle, Building2, Lock, LogIn, User } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 export const Route = createFileRoute('/login')({
   beforeLoad: () => {
     // If already authenticated, redirect to dashboard
     if (localStorage.getItem('access_token')) {
-      throw redirect({ to: '/dashboard' });
+      throw redirect({ to: '/dashboard' })
     }
   },
   component: LoginPage,
-});
+})
 
 function LoginPage() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate()
+  const { login } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
+    e.preventDefault()
+    setError('')
+    setIsLoading(true)
 
     try {
-      await login(email, password);
-      navigate({ to: '/dashboard' });
+      await login(email, password)
+      navigate({ to: '/dashboard' })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+      setError(
+        err instanceof Error ? err.message : 'Login failed. Please try again.',
+      )
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
       <div className="w-full max-w-md p-8">
         {/* Logo and Title */}
         <div className="text-center mb-8">
@@ -45,7 +52,9 @@ function LoginPage() {
             <Building2 className="w-8 h-8 text-cyan-400" />
           </div>
           <h1 className="text-3xl font-bold text-white">SAMVIT HRMS</h1>
-          <p className="text-slate-400 mt-2">AI-powered Human Resource Management</p>
+          <p className="text-slate-400 mt-2">
+            AI-powered Human Resource Management
+          </p>
         </div>
 
         {/* Login Form */}
@@ -61,7 +70,10 @@ function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-300 mb-2"
+              >
                 Email Address
               </label>
               <div className="relative">
@@ -79,7 +91,10 @@ function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-300 mb-2"
+              >
                 Password
               </label>
               <div className="relative">
@@ -144,5 +159,5 @@ function LoginPage() {
         </p>
       </div>
     </div>
-  );
+  )
 }

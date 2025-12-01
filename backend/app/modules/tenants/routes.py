@@ -5,14 +5,14 @@ for branding on login/signup pages. All admin operations have been moved to
 the platform module (/api/v1/platform/tenants/*).
 """
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Request
+from sqlalchemy import select
 
 from app.core.database import DbSession
+from app.core.exceptions import EntityNotFoundError
 from app.core.tenancy import extract_domain_from_host
 from app.modules.tenants.models import Tenant
 from app.modules.tenants.schemas import TenantPublicInfo
-from app.core.exceptions import EntityNotFoundError
-from sqlalchemy import select
 
 router = APIRouter(prefix="/tenants", tags=["Tenants"])
 

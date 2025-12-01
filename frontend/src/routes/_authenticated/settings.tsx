@@ -1,45 +1,44 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
+import { createFileRoute } from '@tanstack/react-router'
+import { useState } from 'react'
+import { Bell, Check, Globe, Monitor, Moon, Palette, Sun } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
-  Bell,
-  Check,
-  Globe,
-  Monitor,
-  Moon,
-  Palette,
-  Sun,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { useTheme } from '@/contexts/ThemeContext';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { useTheme } from '@/contexts/ThemeContext'
 
 export const Route = createFileRoute('/_authenticated/settings')({
   component: SettingsPage,
-});
+})
 
 function SettingsPage() {
-  const { theme, setTheme } = useTheme();
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [leaveApprovalNotifications, setLeaveApprovalNotifications] = useState(true);
-  const [attendanceReminders, setAttendanceReminders] = useState(true);
-  const [payslipNotifications, setPayslipNotifications] = useState(true);
-  const [language, setLanguage] = useState('en');
-  const [timezone, setTimezone] = useState('Asia/Kolkata');
-  const [success, setSuccess] = useState('');
+  const { theme, setTheme } = useTheme()
+  const [emailNotifications, setEmailNotifications] = useState(true)
+  const [leaveApprovalNotifications, setLeaveApprovalNotifications] =
+    useState(true)
+  const [attendanceReminders, setAttendanceReminders] = useState(true)
+  const [payslipNotifications, setPayslipNotifications] = useState(true)
+  const [language, setLanguage] = useState('en')
+  const [timezone, setTimezone] = useState('Asia/Kolkata')
+  const [success, setSuccess] = useState('')
 
   const handleSave = () => {
     // TODO: Save settings to backend
-    setSuccess('Settings saved successfully');
-    setTimeout(() => setSuccess(''), 3000);
-  };
+    setSuccess('Settings saved successfully')
+    setTimeout(() => setSuccess(''), 3000)
+  }
 
   const themes = [
     { value: 'light', label: 'Light', icon: Sun },
     { value: 'dark', label: 'Dark', icon: Moon },
     { value: 'system', label: 'System', icon: Monitor },
-  ] as const;
+  ] as const
 
   const languages = [
     { value: 'en', label: 'English' },
@@ -47,7 +46,7 @@ function SettingsPage() {
     { value: 'ta', label: 'Tamil' },
     { value: 'te', label: 'Telugu' },
     { value: 'kn', label: 'Kannada' },
-  ];
+  ]
 
   const timezones = [
     { value: 'Asia/Kolkata', label: 'India (IST)' },
@@ -55,13 +54,15 @@ function SettingsPage() {
     { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
     { value: 'Europe/London', label: 'London (GMT)' },
     { value: 'Asia/Singapore', label: 'Singapore (SGT)' },
-  ];
+  ]
 
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-white">Settings</h1>
-        <p className="text-slate-400 mt-1">Manage your preferences and notifications</p>
+        <p className="text-slate-400 mt-1">
+          Manage your preferences and notifications
+        </p>
       </div>
 
       {success && (
@@ -94,8 +95,12 @@ function SettingsPage() {
                       : 'border-slate-600 bg-slate-700/30 hover:border-slate-500'
                   }`}
                 >
-                  <Icon className={`w-6 h-6 ${theme === value ? 'text-cyan-400' : 'text-slate-400'}`} />
-                  <span className={`text-sm ${theme === value ? 'text-cyan-400' : 'text-slate-300'}`}>
+                  <Icon
+                    className={`w-6 h-6 ${theme === value ? 'text-cyan-400' : 'text-slate-400'}`}
+                  />
+                  <span
+                    className={`text-sm ${theme === value ? 'text-cyan-400' : 'text-slate-300'}`}
+                  >
                     {label}
                   </span>
                 </button>
@@ -112,7 +117,9 @@ function SettingsPage() {
             <Globe className="w-5 h-5 text-cyan-400" />
             <CardTitle className="text-white">Localization</CardTitle>
           </div>
-          <CardDescription>Set your language and timezone preferences</CardDescription>
+          <CardDescription>
+            Set your language and timezone preferences
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -157,13 +164,17 @@ function SettingsPage() {
             <Bell className="w-5 h-5 text-cyan-400" />
             <CardTitle className="text-white">Notifications</CardTitle>
           </div>
-          <CardDescription>Choose what notifications you want to receive</CardDescription>
+          <CardDescription>
+            Choose what notifications you want to receive
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white font-medium">Email Notifications</p>
-              <p className="text-sm text-slate-400">Receive notifications via email</p>
+              <p className="text-sm text-slate-400">
+                Receive notifications via email
+              </p>
             </div>
             <Switch
               checked={emailNotifications}
@@ -174,7 +185,9 @@ function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white font-medium">Leave Approval Alerts</p>
-              <p className="text-sm text-slate-400">Get notified when leaves are approved or rejected</p>
+              <p className="text-sm text-slate-400">
+                Get notified when leaves are approved or rejected
+              </p>
             </div>
             <Switch
               checked={leaveApprovalNotifications}
@@ -185,7 +198,9 @@ function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white font-medium">Attendance Reminders</p>
-              <p className="text-sm text-slate-400">Daily reminders to clock in and out</p>
+              <p className="text-sm text-slate-400">
+                Daily reminders to clock in and out
+              </p>
             </div>
             <Switch
               checked={attendanceReminders}
@@ -196,7 +211,9 @@ function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white font-medium">Payslip Notifications</p>
-              <p className="text-sm text-slate-400">Get notified when new payslips are available</p>
+              <p className="text-sm text-slate-400">
+                Get notified when new payslips are available
+              </p>
             </div>
             <Switch
               checked={payslipNotifications}
@@ -211,5 +228,5 @@ function SettingsPage() {
         <Button onClick={handleSave}>Save Settings</Button>
       </div>
     </div>
-  );
+  )
 }

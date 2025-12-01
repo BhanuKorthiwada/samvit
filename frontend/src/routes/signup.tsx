@@ -1,5 +1,10 @@
-import { Link, createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import {
+  Link,
+  createFileRoute,
+  redirect,
+  useNavigate,
+} from '@tanstack/react-router'
+import { useState } from 'react'
 import {
   AlertCircle,
   ArrowLeft,
@@ -11,44 +16,50 @@ import {
   Mail,
   Phone,
   User,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { authService } from '@/lib/api';
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { authService } from '@/lib/api'
 
 export const Route = createFileRoute('/signup')({
   beforeLoad: () => {
     // If already authenticated, redirect to dashboard
     if (localStorage.getItem('access_token')) {
-      throw redirect({ to: '/dashboard' });
+      throw redirect({ to: '/dashboard' })
     }
   },
   component: SignupPage,
-});
+})
 
-type Step = 'company' | 'admin' | 'success';
+type Step = 'company' | 'admin' | 'success'
 
 interface SignupFormData {
   // Company info
-  company_name: string;
-  domain: string;
-  company_email: string;
-  company_phone: string;
+  company_name: string
+  domain: string
+  company_email: string
+  company_phone: string
   // Admin user info
-  first_name: string;
-  last_name: string;
-  email: string;
-  password: string;
-  confirm_password: string;
+  first_name: string
+  last_name: string
+  email: string
+  password: string
+  confirm_password: string
 }
 
 function SignupPage() {
-  const navigate = useNavigate();
-  const [step, setStep] = useState<Step>('company');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate()
+  const [step, setStep] = useState<Step>('company')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<SignupFormData>({
     company_name: '',
     domain: '',
@@ -59,13 +70,13 @@ function SignupPage() {
     email: '',
     password: '',
     confirm_password: '',
-  });
+  })
 
-  const baseDomain = 'samvit.bhanu.dev';
+  const baseDomain = 'samvit.bhanu.dev'
 
   const updateField = (field: keyof SignupFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
 
   const generateDomain = (name: string) => {
     return name
@@ -73,80 +84,85 @@ function SignupPage() {
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
-      .substring(0, 20);
-  };
+      .substring(0, 20)
+  }
 
   const handleCompanyNameChange = (value: string) => {
-    updateField('company_name', value);
-    if (!formData.domain || formData.domain === generateDomain(formData.company_name)) {
-      updateField('domain', generateDomain(value));
+    updateField('company_name', value)
+    if (
+      !formData.domain ||
+      formData.domain === generateDomain(formData.company_name)
+    ) {
+      updateField('domain', generateDomain(value))
     }
-  };
+  }
 
   const validateCompanyStep = (): boolean => {
     if (!formData.company_name.trim()) {
-      setError('Company name is required');
-      return false;
+      setError('Company name is required')
+      return false
     }
     if (!formData.domain.trim()) {
-      setError('Subdomain is required');
-      return false;
+      setError('Subdomain is required')
+      return false
     }
     if (!/^[a-z0-9-]+$/.test(formData.domain)) {
-      setError('Subdomain can only contain lowercase letters, numbers, and hyphens');
-      return false;
+      setError(
+        'Subdomain can only contain lowercase letters, numbers, and hyphens',
+      )
+      return false
     }
     if (!formData.company_email.trim()) {
-      setError('Company email is required');
-      return false;
+      setError('Company email is required')
+      return false
     }
-    return true;
-  };
+    return true
+  }
 
   const validateAdminStep = (): boolean => {
     if (!formData.first_name.trim()) {
-      setError('First name is required');
-      return false;
+      setError('First name is required')
+      return false
     }
     if (!formData.last_name.trim()) {
-      setError('Last name is required');
-      return false;
+      setError('Last name is required')
+      return false
     }
     if (!formData.email.trim()) {
-      setError('Email is required');
-      return false;
+      setError('Email is required')
+      return false
     }
     if (!formData.password) {
-      setError('Password is required');
-      return false;
+      setError('Password is required')
+      return false
     }
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return false;
+      setError('Password must be at least 8 characters')
+      return false
     }
     if (formData.password !== formData.confirm_password) {
-      setError('Passwords do not match');
-      return false;
+      setError('Passwords do not match')
+      return false
     }
-    return true;
-  };
+    return true
+  }
 
   const handleNextStep = () => {
-    setError('');
+    setError('')
     if (step === 'company' && validateCompanyStep()) {
-      setStep('admin');
+      setStep('admin')
     }
-  };
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+    e.preventDefault()
+    setError('')
 
     if (!validateAdminStep()) {
-      return;
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
       await authService.registerCompany({
@@ -158,28 +174,33 @@ function SignupPage() {
         admin_password: formData.password,
         admin_first_name: formData.first_name,
         admin_last_name: formData.last_name,
-      });
+      })
 
-      setStep('success');
+      setStep('success')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Signup failed. Please try again.');
+      setError(
+        err instanceof Error ? err.message : 'Signup failed. Please try again.',
+      )
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   if (step === 'success') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
         <Card className="w-full max-w-md bg-slate-800/50 border-slate-700">
           <CardContent className="pt-6">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4">
                 <CheckCircle2 className="w-8 h-8 text-green-400" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Account Created!</h2>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Account Created!
+              </h2>
               <p className="text-slate-400 mb-6">
-                Your company account has been created successfully. You can now access your HRMS at:
+                Your company account has been created successfully. You can now
+                access your HRMS at:
               </p>
               <div className="bg-slate-700/50 rounded-lg p-4 mb-6">
                 <p className="text-cyan-400 font-mono text-lg">
@@ -187,7 +208,8 @@ function SignupPage() {
                 </p>
               </div>
               <p className="text-sm text-slate-500 mb-6">
-                We&apos;ve sent a verification email to <strong>{formData.email}</strong>
+                We&apos;ve sent a verification email to{' '}
+                <strong>{formData.email}</strong>
               </p>
               <Button
                 onClick={() => navigate({ to: '/login' })}
@@ -199,11 +221,11 @@ function SignupPage() {
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
       <div className="w-full max-w-lg">
         {/* Logo and Title */}
         <div className="text-center mb-8">
@@ -220,26 +242,32 @@ function SignupPage() {
         <div className="flex items-center justify-center gap-4 mb-8">
           <div className="flex items-center gap-2">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'company'
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                step === 'company'
                   ? 'bg-cyan-500 text-white'
                   : 'bg-cyan-500/20 text-cyan-400'
-                }`}
+              }`}
             >
               1
             </div>
-            <span className="text-sm text-slate-400 hidden sm:inline">Company Info</span>
+            <span className="text-sm text-slate-400 hidden sm:inline">
+              Company Info
+            </span>
           </div>
           <div className="w-12 h-0.5 bg-slate-700" />
           <div className="flex items-center gap-2">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'admin'
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                step === 'admin'
                   ? 'bg-cyan-500 text-white'
                   : 'bg-slate-700 text-slate-400'
-                }`}
+              }`}
             >
               2
             </div>
-            <span className="text-sm text-slate-400 hidden sm:inline">Admin Account</span>
+            <span className="text-sm text-slate-400 hidden sm:inline">
+              Admin Account
+            </span>
           </div>
         </div>
 
@@ -262,7 +290,16 @@ function SignupPage() {
               </div>
             )}
 
-            <form onSubmit={step === 'admin' ? handleSubmit : (e) => { e.preventDefault(); handleNextStep(); }}>
+            <form
+              onSubmit={
+                step === 'admin'
+                  ? handleSubmit
+                  : (e) => {
+                      e.preventDefault()
+                      handleNextStep()
+                    }
+              }
+            >
               {step === 'company' && (
                 <div className="space-y-4">
                   <div>
@@ -273,7 +310,9 @@ function SignupPage() {
                         id="company_name"
                         type="text"
                         value={formData.company_name}
-                        onChange={(e) => handleCompanyNameChange(e.target.value)}
+                        onChange={(e) =>
+                          handleCompanyNameChange(e.target.value)
+                        }
                         placeholder="Acme Corporation"
                         className="pl-10"
                         required
@@ -289,7 +328,9 @@ function SignupPage() {
                         id="domain"
                         type="text"
                         value={formData.domain}
-                        onChange={(e) => updateField('domain', e.target.value.toLowerCase())}
+                        onChange={(e) =>
+                          updateField('domain', e.target.value.toLowerCase())
+                        }
                         placeholder="acme"
                         className="pl-10"
                         required
@@ -311,7 +352,9 @@ function SignupPage() {
                         id="company_email"
                         type="email"
                         value={formData.company_email}
-                        onChange={(e) => updateField('company_email', e.target.value)}
+                        onChange={(e) =>
+                          updateField('company_email', e.target.value)
+                        }
                         placeholder="hr@acme.com"
                         className="pl-10"
                         required
@@ -320,14 +363,18 @@ function SignupPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="company_phone">Phone Number (Optional)</Label>
+                    <Label htmlFor="company_phone">
+                      Phone Number (Optional)
+                    </Label>
                     <div className="relative mt-1.5">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <Input
                         id="company_phone"
                         type="tel"
                         value={formData.company_phone}
-                        onChange={(e) => updateField('company_phone', e.target.value)}
+                        onChange={(e) =>
+                          updateField('company_phone', e.target.value)
+                        }
                         placeholder="+91 98765 43210"
                         className="pl-10"
                       />
@@ -351,7 +398,9 @@ function SignupPage() {
                           id="first_name"
                           type="text"
                           value={formData.first_name}
-                          onChange={(e) => updateField('first_name', e.target.value)}
+                          onChange={(e) =>
+                            updateField('first_name', e.target.value)
+                          }
                           placeholder="John"
                           className="pl-10"
                           required
@@ -364,7 +413,9 @@ function SignupPage() {
                         id="last_name"
                         type="text"
                         value={formData.last_name}
-                        onChange={(e) => updateField('last_name', e.target.value)}
+                        onChange={(e) =>
+                          updateField('last_name', e.target.value)
+                        }
                         placeholder="Doe"
                         className="mt-1.5"
                         required
@@ -396,7 +447,9 @@ function SignupPage() {
                         id="password"
                         type="password"
                         value={formData.password}
-                        onChange={(e) => updateField('password', e.target.value)}
+                        onChange={(e) =>
+                          updateField('password', e.target.value)
+                        }
                         placeholder="••••••••"
                         className="pl-10"
                         minLength={8}
@@ -416,7 +469,9 @@ function SignupPage() {
                         id="confirm_password"
                         type="password"
                         value={formData.confirm_password}
-                        onChange={(e) => updateField('confirm_password', e.target.value)}
+                        onChange={(e) =>
+                          updateField('confirm_password', e.target.value)
+                        }
                         placeholder="••••••••"
                         className="pl-10"
                         minLength={8}
@@ -429,7 +484,10 @@ function SignupPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => { setError(''); setStep('company'); }}
+                      onClick={() => {
+                        setError('')
+                        setStep('company')
+                      }}
                       className="flex-1"
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />
@@ -457,7 +515,10 @@ function SignupPage() {
             <div className="mt-6 text-center">
               <p className="text-sm text-slate-400">
                 Already have an account?{' '}
-                <Link to="/login" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                <Link
+                  to="/login"
+                  className="text-cyan-400 hover:text-cyan-300 transition-colors"
+                >
                   Sign in
                 </Link>
               </p>
@@ -467,9 +528,9 @@ function SignupPage() {
 
         {/* Footer */}
         <p className="text-center text-slate-500 text-sm mt-6">
-          © 2024 SAMVIT HRMS. All rights reserved.
+          © 2025 SAMVIT HRMS. All rights reserved.
         </p>
       </div>
     </div>
-  );
+  )
 }

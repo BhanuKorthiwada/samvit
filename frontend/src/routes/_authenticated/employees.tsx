@@ -1,5 +1,5 @@
-import { Link, createFileRoute } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -7,30 +7,30 @@ import {
   Plus,
   Search,
   Users,
-} from 'lucide-react';
-import type { DepartmentSummary, EmployeeSummary } from '@/lib/api/types';
-import { departmentService, employeeService } from '@/lib/api';
+} from 'lucide-react'
+import type { DepartmentSummary, EmployeeSummary } from '@/lib/api/types'
+import { departmentService, employeeService } from '@/lib/api'
 
 export const Route = createFileRoute('/_authenticated/employees')({
   component: EmployeesPage,
-});
+})
 
 function EmployeesPage() {
-  const [employees, setEmployees] = useState<Array<EmployeeSummary>>([]);
-  const [departments, setDepartments] = useState<Array<DepartmentSummary>>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('');
+  const [employees, setEmployees] = useState<Array<EmployeeSummary>>([])
+  const [departments, setDepartments] = useState<Array<DepartmentSummary>>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('')
 
-  const pageSize = 10;
+  const pageSize = 10
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
         const [empData, deptData] = await Promise.all([
           searchQuery
@@ -41,50 +41,56 @@ function EmployeesPage() {
                 page_size: items.length,
                 total_pages: 1,
               }))
-            : employeeService.list(page, pageSize, selectedDepartment || undefined),
+            : employeeService.list(
+                page,
+                pageSize,
+                selectedDepartment || undefined,
+              ),
           departmentService.list(1, 100),
-        ]);
+        ])
 
-        setEmployees(empData.items);
-        setTotal(empData.total);
-        setTotalPages(empData.total_pages);
-        setDepartments(deptData.items);
+        setEmployees(empData.items)
+        setTotal(empData.total)
+        setTotalPages(empData.total_pages)
+        setDepartments(deptData.items)
       } catch (err) {
-        setError('Failed to load employees');
-        console.error(err);
+        setError('Failed to load employees')
+        console.error(err)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchData();
-  }, [page, searchQuery, selectedDepartment]);
+    fetchData()
+  }, [page, searchQuery, selectedDepartment])
 
   const getDepartmentName = (deptId: string | null) => {
-    if (!deptId) return '-';
-    const dept = departments.find((d) => d.id === deptId);
-    return dept?.name || '-';
-  };
+    if (!deptId) return '-'
+    const dept = departments.find((d) => d.id === deptId)
+    return dept?.name || '-'
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-500/10 text-green-400';
+        return 'bg-green-500/10 text-green-400'
       case 'on_leave':
-        return 'bg-yellow-500/10 text-yellow-400';
+        return 'bg-yellow-500/10 text-yellow-400'
       case 'on_notice':
-        return 'bg-orange-500/10 text-orange-400';
+        return 'bg-orange-500/10 text-orange-400'
       default:
-        return 'bg-slate-500/10 text-slate-400';
+        return 'bg-slate-500/10 text-slate-400'
     }
-  };
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">Employees</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">
+            Employees
+          </h1>
           <p className="text-slate-400 mt-1">{total} employees in total</p>
         </div>
         <button className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition-colors">
@@ -102,8 +108,8 @@ function EmployeesPage() {
             placeholder="Search employees..."
             value={searchQuery}
             onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setPage(1);
+              setSearchQuery(e.target.value)
+              setPage(1)
             }}
             className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
           />
@@ -113,8 +119,8 @@ function EmployeesPage() {
           <select
             value={selectedDepartment}
             onChange={(e) => {
-              setSelectedDepartment(e.target.value);
-              setPage(1);
+              setSelectedDepartment(e.target.value)
+              setPage(1)
             }}
             className="pl-10 pr-8 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent appearance-none"
           >
@@ -170,7 +176,10 @@ function EmployeesPage() {
               </thead>
               <tbody className="divide-y divide-slate-700">
                 {employees.map((employee) => (
-                  <tr key={employee.id} className="hover:bg-slate-700/30 transition-colors">
+                  <tr
+                    key={employee.id}
+                    className="hover:bg-slate-700/30 transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
@@ -183,12 +192,16 @@ function EmployeesPage() {
                           <p className="text-white font-medium">
                             {employee.first_name} {employee.last_name}
                           </p>
-                          <p className="text-sm text-slate-400">{employee.email}</p>
+                          <p className="text-sm text-slate-400">
+                            {employee.email}
+                          </p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-slate-300 font-mono">{employee.employee_code}</span>
+                      <span className="text-slate-300 font-mono">
+                        {employee.employee_code}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-slate-300">
@@ -222,8 +235,8 @@ function EmployeesPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-slate-700">
             <p className="text-sm text-slate-400">
-              Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, total)} of {total}{' '}
-              results
+              Showing {(page - 1) * pageSize + 1} to{' '}
+              {Math.min(page * pageSize, total)} of {total} results
             </p>
             <div className="flex items-center gap-2">
               <button
@@ -248,5 +261,5 @@ function EmployeesPage() {
         )}
       </div>
     </div>
-  );
+  )
 }

@@ -1,6 +1,6 @@
-import { Component   } from 'react'
+import { Component } from 'react'
 import { AlertCircle, RefreshCw } from 'lucide-react'
-import type {ErrorInfo, ReactNode} from 'react';
+import type { ErrorInfo, ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 
 interface Props {
@@ -115,7 +115,9 @@ export function RouteErrorFallback({
 
         {import.meta.env.DEV && (
           <div className="mt-4 rounded-lg border bg-muted/50 p-4 text-left">
-            <p className="font-mono text-sm text-destructive">{error.message}</p>
+            <p className="font-mono text-sm text-destructive">
+              {error.message}
+            </p>
           </div>
         )}
 
@@ -126,9 +128,7 @@ export function RouteErrorFallback({
               Try Again
             </Button>
           )}
-          <Button onClick={() => (window.location.href = '/')}>
-            Go Home
-          </Button>
+          <Button onClick={() => (window.location.href = '/')}>Go Home</Button>
         </div>
       </div>
     </div>

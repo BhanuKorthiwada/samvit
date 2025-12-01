@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { createFileRoute } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import {
   AlertCircle,
   Calendar,
@@ -8,31 +8,45 @@ import {
   TrendingUp,
   UserCheck,
   Users,
-} from 'lucide-react';
-import type { DailyAttendanceReport, EmployeeStats, LeaveRequestResponse } from '@/lib/api/types';
-import { useAuth } from '@/contexts/AuthContext';
-import { attendanceService, employeeService, leaveRequestService } from '@/lib/api';
+} from 'lucide-react'
+import type {
+  DailyAttendanceReport,
+  EmployeeStats,
+  LeaveRequestResponse,
+} from '@/lib/api/types'
+import { useAuth } from '@/contexts/AuthContext'
+import {
+  attendanceService,
+  employeeService,
+  leaveRequestService,
+} from '@/lib/api'
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
   component: DashboardPage,
-});
+})
 
 interface StatCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ElementType;
-  color: 'cyan' | 'green' | 'yellow' | 'red' | 'purple';
-  subtitle?: string;
+  title: string
+  value: string | number
+  icon: React.ElementType
+  color: 'cyan' | 'green' | 'yellow' | 'red' | 'purple'
+  subtitle?: string
 }
 
-function StatCard({ title, value, icon: Icon, color, subtitle }: StatCardProps) {
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  color,
+  subtitle,
+}: StatCardProps) {
   const colorClasses = {
     cyan: 'bg-cyan-500/10 text-cyan-400',
     green: 'bg-green-500/10 text-green-400',
     yellow: 'bg-yellow-500/10 text-yellow-400',
     red: 'bg-red-500/10 text-red-400',
     purple: 'bg-purple-500/10 text-purple-400',
-  };
+  }
 
   return (
     <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
@@ -40,23 +54,28 @@ function StatCard({ title, value, icon: Icon, color, subtitle }: StatCardProps) 
         <div>
           <p className="text-slate-400 text-sm font-medium">{title}</p>
           <p className="text-3xl font-bold text-white mt-2">{value}</p>
-          {subtitle && <p className="text-slate-500 text-sm mt-1">{subtitle}</p>}
+          {subtitle && (
+            <p className="text-slate-500 text-sm mt-1">{subtitle}</p>
+          )}
         </div>
         <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
           <Icon className="w-6 h-6" />
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 function DashboardPage() {
-  const { user } = useAuth();
-  const [stats, setStats] = useState<EmployeeStats | null>(null);
-  const [attendanceReport, setAttendanceReport] = useState<DailyAttendanceReport | null>(null);
-  const [pendingLeaves, setPendingLeaves] = useState<Array<LeaveRequestResponse>>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { user } = useAuth()
+  const [stats, setStats] = useState<EmployeeStats | null>(null)
+  const [attendanceReport, setAttendanceReport] =
+    useState<DailyAttendanceReport | null>(null)
+  const [pendingLeaves, setPendingLeaves] = useState<
+    Array<LeaveRequestResponse>
+  >([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -65,35 +84,35 @@ function DashboardPage() {
           employeeService.getStats().catch(() => null),
           attendanceService.getDailyReport().catch(() => null),
           leaveRequestService.getPendingApprovals().catch(() => []),
-        ]);
+        ])
 
-        setStats(statsData);
-        setAttendanceReport(attendanceData);
-        setPendingLeaves(leavesData);
+        setStats(statsData)
+        setAttendanceReport(attendanceData)
+        setPendingLeaves(leavesData)
       } catch (err) {
-        setError('Failed to load dashboard data');
-        console.error(err);
+        setError('Failed to load dashboard data')
+        console.error(err)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchDashboardData();
-  }, []);
+    fetchDashboardData()
+  }, [])
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  });
+  })
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-8 h-8 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
       </div>
-    );
+    )
   }
 
   return (
@@ -109,7 +128,10 @@ function DashboardPage() {
         <div className="flex items-center gap-2 text-cyan-400">
           <Clock className="w-5 h-5" />
           <span className="font-medium">
-            {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+            {new Date().toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
           </span>
         </div>
       </div>
@@ -155,7 +177,9 @@ function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Actions */}
         <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-          <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">
+            Quick Actions
+          </h2>
           <div className="grid grid-cols-2 gap-3">
             <button className="p-4 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-lg transition-colors flex flex-col items-center gap-2">
               <Clock className="w-6 h-6" />
@@ -178,7 +202,9 @@ function DashboardPage() {
 
         {/* Pending Leave Approvals */}
         <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-          <h2 className="text-lg font-semibold text-white mb-4">Pending Approvals</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">
+            Pending Approvals
+          </h2>
           {pendingLeaves.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-slate-400">
               <CheckCircle className="w-12 h-12 mb-2" />
@@ -211,10 +237,15 @@ function DashboardPage() {
       {/* Attendance Overview (if we have data by department) */}
       {stats?.by_department && Object.keys(stats.by_department).length > 0 && (
         <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-          <h2 className="text-lg font-semibold text-white mb-4">Employees by Department</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">
+            Employees by Department
+          </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {Object.entries(stats.by_department).map(([dept, count]) => (
-              <div key={dept} className="text-center p-4 bg-slate-700/30 rounded-lg">
+              <div
+                key={dept}
+                className="text-center p-4 bg-slate-700/30 rounded-lg"
+              >
                 <p className="text-2xl font-bold text-white">{count}</p>
                 <p className="text-sm text-slate-400 mt-1">{dept}</p>
               </div>
@@ -223,5 +254,5 @@ function DashboardPage() {
         </div>
       )}
     </div>
-  );
+  )
 }

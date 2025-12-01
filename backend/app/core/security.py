@@ -286,15 +286,12 @@ def require_roles(allowed_roles: list[str]):
     """
 
     async def role_checker(
-        request: Request,
-        credentials: Annotated[
-            HTTPAuthorizationCredentials | None, Depends(security)
-        ],
+        credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
     ) -> None:
         from sqlalchemy import select
 
         from app.core.database import async_session_maker
-        from app.modules.auth.models import Role, User, user_roles
+        from app.modules.auth.models import Role, user_roles
 
         payload = _get_validated_payload(credentials)
         await _check_token_revoked(credentials.credentials, payload)

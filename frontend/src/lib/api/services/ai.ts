@@ -7,8 +7,8 @@ import type {
   ChatRequest,
   ChatResponse,
   SuggestedPromptsResponse,
-} from '@/lib/api/types';
-import apiClient from '@/lib/api/client';
+} from '@/lib/api/types'
+import apiClient from '@/lib/api/client'
 
 export const aiService = {
   /**
@@ -18,23 +18,23 @@ export const aiService = {
     const request: ChatRequest = {
       message,
       conversation_id: conversationId,
-    };
-    return apiClient.post<ChatResponse>('/ai/chat', request);
+    }
+    return apiClient.post<ChatResponse>('/ai/chat', request)
   },
 
   /**
    * Get list of available AI agents
    */
   async listAgents(): Promise<{ agents: Array<AgentInfo> }> {
-    return apiClient.get<{ agents: Array<AgentInfo> }>('/ai/agents');
+    return apiClient.get<{ agents: Array<AgentInfo> }>('/ai/agents')
   },
 
   /**
    * Get suggested prompts for the chat interface
    */
   async getSuggestedPrompts(): Promise<SuggestedPromptsResponse> {
-    return apiClient.get<SuggestedPromptsResponse>('/ai/suggested-prompts');
+    return apiClient.get<SuggestedPromptsResponse>('/ai/suggested-prompts')
   },
-};
+}
 
-export default aiService;
+export default aiService

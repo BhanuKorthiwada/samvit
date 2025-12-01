@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
+import { createFileRoute } from '@tanstack/react-router'
+import { useState } from 'react'
 import {
   AlertCircle,
   Building2,
@@ -12,112 +12,130 @@ import {
   Save,
   Shield,
   User,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/AuthContext';
-import { authService } from '@/lib/api';
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useAuth } from '@/contexts/AuthContext'
+import { authService } from '@/lib/api'
 
 export const Route = createFileRoute('/_authenticated/profile')({
   component: ProfilePage,
-});
+})
 
 function ProfilePage() {
-  const { user, refreshUser } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const { user, refreshUser } = useAuth()
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   // Profile form state
-  const [firstName, setFirstName] = useState(user?.first_name || '');
-  const [lastName, setLastName] = useState(user?.last_name || '');
-  const [phone, setPhone] = useState('');
+  const [firstName, setFirstName] = useState(user?.first_name || '')
+  const [lastName, setLastName] = useState(user?.last_name || '')
+  const [phone, setPhone] = useState('')
 
   // Password form state
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState('')
 
   const handleSaveProfile = async () => {
-    setError('');
-    setSuccess('');
-    setIsSaving(true);
+    setError('')
+    setSuccess('')
+    setIsSaving(true)
 
     try {
       await authService.updateProfile({
         first_name: firstName,
         last_name: lastName,
         phone: phone || undefined,
-      });
-      await refreshUser();
-      setSuccess('Profile updated successfully');
-      setIsEditing(false);
+      })
+      await refreshUser()
+      setSuccess('Profile updated successfully')
+      setIsEditing(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update profile');
+      setError(err instanceof Error ? err.message : 'Failed to update profile')
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPasswordError('');
-    setPasswordSuccess('');
+    e.preventDefault()
+    setPasswordError('')
+    setPasswordSuccess('')
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setPasswordError('All fields are required');
-      return;
+      setPasswordError('All fields are required')
+      return
     }
 
     if (newPassword.length < 8) {
-      setPasswordError('New password must be at least 8 characters');
-      return;
+      setPasswordError('New password must be at least 8 characters')
+      return
     }
 
     if (newPassword !== confirmPassword) {
-      setPasswordError('New passwords do not match');
-      return;
+      setPasswordError('New passwords do not match')
+      return
     }
 
-    setIsChangingPassword(true);
+    setIsChangingPassword(true)
     try {
       await authService.changePassword({
         current_password: currentPassword,
         new_password: newPassword,
-      });
-      setPasswordSuccess('Password changed successfully');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      })
+      setPasswordSuccess('Password changed successfully')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
     } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : 'Failed to change password');
+      setPasswordError(
+        err instanceof Error ? err.message : 'Failed to change password',
+      )
     } finally {
-      setIsChangingPassword(false);
+      setIsChangingPassword(false)
     }
-  };
+  }
 
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-white">My Profile</h1>
-        <p className="text-slate-400 mt-1">Manage your account settings and preferences</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">
+          My Profile
+        </h1>
+        <p className="text-slate-400 mt-1">
+          Manage your account settings and preferences
+        </p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="bg-slate-800">
-          <TabsTrigger value="profile" className="data-[state=active]:bg-slate-700">
+          <TabsTrigger
+            value="profile"
+            className="data-[state=active]:bg-slate-700"
+          >
             <User className="w-4 h-4 mr-2" />
             Profile
           </TabsTrigger>
-          <TabsTrigger value="security" className="data-[state=active]:bg-slate-700">
+          <TabsTrigger
+            value="security"
+            className="data-[state=active]:bg-slate-700"
+          >
             <Shield className="w-4 h-4 mr-2" />
             Security
           </TabsTrigger>
@@ -129,8 +147,9 @@ function ProfilePage() {
             <CardContent className="pt-6">
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 <div className="relative">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-white text-3xl font-bold">
-                    {user?.first_name[0]}{user?.last_name[0]}
+                  <div className="w-24 h-24 rounded-full bg-linear-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-white text-3xl font-bold">
+                    {user?.first_name[0]}
+                    {user?.last_name[0]}
                   </div>
                   <button className="absolute bottom-0 right-0 p-2 bg-slate-700 rounded-full border-2 border-slate-800 hover:bg-slate-600 transition-colors">
                     <Camera className="w-4 h-4 text-white" />
@@ -160,7 +179,9 @@ function ProfilePage() {
           <Card className="bg-slate-800 border-slate-700">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-white">Personal Information</CardTitle>
+                <CardTitle className="text-white">
+                  Personal Information
+                </CardTitle>
                 <CardDescription>Update your personal details</CardDescription>
               </div>
               {!isEditing ? (
@@ -239,7 +260,9 @@ function ProfilePage() {
                       className="pl-10 bg-slate-700/50"
                     />
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">Email cannot be changed</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Email cannot be changed
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="phone">Phone Number</Label>
@@ -264,7 +287,9 @@ function ProfilePage() {
                 <div className="relative mt-1.5">
                   <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
-                    value={user?.tenant_id ? 'Your Organization' : 'Not assigned'}
+                    value={
+                      user?.tenant_id ? 'Your Organization' : 'Not assigned'
+                    }
                     disabled
                     className="pl-10 bg-slate-700/50"
                   />
@@ -278,7 +303,9 @@ function ProfilePage() {
           <Card className="bg-slate-800 border-slate-700">
             <CardHeader>
               <CardTitle className="text-white">Change Password</CardTitle>
-              <CardDescription>Update your password to keep your account secure</CardDescription>
+              <CardDescription>
+                Update your password to keep your account secure
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {passwordError && (
@@ -328,7 +355,9 @@ function ProfilePage() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Label htmlFor="confirmPassword">
+                      Confirm New Password
+                    </Label>
                     <div className="relative mt-1.5">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <Input
@@ -371,7 +400,9 @@ function ProfilePage() {
                   </div>
                   <div>
                     <p className="text-white font-medium">Current Session</p>
-                    <p className="text-sm text-slate-400">This device · Active now</p>
+                    <p className="text-sm text-slate-400">
+                      This device · Active now
+                    </p>
                   </div>
                 </div>
               </div>
@@ -380,5 +411,5 @@ function ProfilePage() {
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

@@ -1,110 +1,139 @@
-import { Link, createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Loader2, Lock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Link,
+  createFileRoute,
+  redirect,
+  useNavigate,
+} from '@tanstack/react-router'
+import { useState } from 'react'
+import {
+  AlertCircle,
+  ArrowLeft,
+  Building2,
+  CheckCircle2,
+  Loader2,
+  Lock,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export const Route = createFileRoute('/reset-password')({
   validateSearch: (search: Record<string, unknown>) => {
     return {
       token: (search.token as string) || '',
-    };
+    }
   },
   beforeLoad: () => {
     if (localStorage.getItem('access_token')) {
-      throw redirect({ to: '/dashboard' });
+      throw redirect({ to: '/dashboard' })
     }
   },
   component: ResetPasswordPage,
-});
+})
 
 function ResetPasswordPage() {
-  const navigate = useNavigate();
-  const { token } = Route.useSearch();
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const navigate = useNavigate()
+  const { token } = Route.useSearch()
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+    e.preventDefault()
+    setError('')
 
     if (!password) {
-      setError('Password is required');
-      return;
+      setError('Password is required')
+      return
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
+      setError('Password must be at least 8 characters')
+      return
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
+      setError('Passwords do not match')
+      return
     }
 
     if (!token) {
-      setError('Invalid or missing reset token');
-      return;
+      setError('Invalid or missing reset token')
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
       // TODO: Call reset password API when backend endpoint is ready
       // await authService.resetPassword({ token, new_password: password });
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setIsSuccess(true);
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+      setIsSuccess(true)
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to reset password. Please try again.'
-      );
+        err instanceof Error
+          ? err.message
+          : 'Failed to reset password. Please try again.',
+      )
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
         <Card className="w-full max-w-md bg-slate-800/50 border-slate-700">
           <CardContent className="pt-6">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4">
                 <CheckCircle2 className="w-8 h-8 text-green-400" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Password Reset!</h2>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Password Reset!
+              </h2>
               <p className="text-slate-400 mb-6">
-                Your password has been reset successfully. You can now sign in with your new password.
+                Your password has been reset successfully. You can now sign in
+                with your new password.
               </p>
-              <Button onClick={() => navigate({ to: '/login' })} className="w-full">
+              <Button
+                onClick={() => navigate({ to: '/login' })}
+                className="w-full"
+              >
                 Go to Login
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
         <Card className="w-full max-w-md bg-slate-800/50 border-slate-700">
           <CardContent className="pt-6">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/10 mb-4">
                 <AlertCircle className="w-8 h-8 text-red-400" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Invalid Link</h2>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Invalid Link
+              </h2>
               <p className="text-slate-400 mb-6">
-                This password reset link is invalid or has expired. Please request a new one.
+                This password reset link is invalid or has expired. Please
+                request a new one.
               </p>
               <div className="space-y-3">
                 <Link to="/forgot-password" className="block">
@@ -121,11 +150,11 @@ function ResetPasswordPage() {
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-cyan-500/10 mb-4">
@@ -138,7 +167,9 @@ function ResetPasswordPage() {
         <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader>
             <CardTitle className="text-white">New Password</CardTitle>
-            <CardDescription>Choose a strong password for your account</CardDescription>
+            <CardDescription>
+              Choose a strong password for your account
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {error && (
@@ -165,7 +196,9 @@ function ResetPasswordPage() {
                       required
                     />
                   </div>
-                  <p className="text-xs text-slate-500 mt-1.5">Must be at least 8 characters</p>
+                  <p className="text-xs text-slate-500 mt-1.5">
+                    Must be at least 8 characters
+                  </p>
                 </div>
 
                 <div>
@@ -215,5 +248,5 @@ function ResetPasswordPage() {
         </p>
       </div>
     </div>
-  );
+  )
 }

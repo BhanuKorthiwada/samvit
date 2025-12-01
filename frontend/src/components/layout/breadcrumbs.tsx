@@ -32,7 +32,8 @@ export function Breadcrumbs() {
   const segments = currentPath.split('/').filter(Boolean)
   const breadcrumbs = segments.map((segment, index) => {
     const path = '/' + segments.slice(0, index + 1).join('/')
-    const label = routeLabels[segment] || segment.charAt(0).toUpperCase() + segment.slice(1)
+    const label =
+      routeLabels[segment] || segment.charAt(0).toUpperCase() + segment.slice(1)
     return { path, label }
   })
 
@@ -41,15 +42,15 @@ export function Breadcrumbs() {
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link to='/dashboard'>
-              <Home className='h-4 w-4' />
+            <Link to="/dashboard">
+              <Home className="h-4 w-4" />
             </Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         {breadcrumbs.map((crumb, index) => (
-          <div key={crumb.path} className='flex items-center gap-2'>
+          <div key={crumb.path} className="flex items-center gap-2">
             <BreadcrumbSeparator>
-              <ChevronRight className='h-4 w-4' />
+              <ChevronRight className="h-4 w-4" />
             </BreadcrumbSeparator>
             <BreadcrumbItem>
               {index === breadcrumbs.length - 1 ? (

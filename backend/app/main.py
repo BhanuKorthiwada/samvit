@@ -84,7 +84,10 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:
 # OpenAPI tags for better organization
 OPENAPI_TAGS = [
     {"name": "Health", "description": "Health check endpoints"},
-    {"name": "Platform Admin", "description": "Platform-level administration (super_admin only)"},
+    {
+        "name": "Platform Admin",
+        "description": "Platform-level administration (super_admin only)",
+    },
     {"name": "Auth", "description": "Authentication and authorization"},
     {"name": "Tenants", "description": "Public tenant information"},
     {

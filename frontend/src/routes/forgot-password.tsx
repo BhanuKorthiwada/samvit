@@ -1,69 +1,87 @@
-import { Link, createFileRoute, redirect } from '@tanstack/react-router';
-import { useState } from 'react';
-import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Loader2, Mail } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Link, createFileRoute, redirect } from '@tanstack/react-router'
+import { useState } from 'react'
+import {
+  AlertCircle,
+  ArrowLeft,
+  Building2,
+  CheckCircle2,
+  Loader2,
+  Mail,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export const Route = createFileRoute('/forgot-password')({
   beforeLoad: () => {
     if (localStorage.getItem('access_token')) {
-      throw redirect({ to: '/dashboard' });
+      throw redirect({ to: '/dashboard' })
     }
   },
   component: ForgotPasswordPage,
-});
+})
 
 function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [email, setEmail] = useState('')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+    e.preventDefault()
+    setError('')
 
     if (!email.trim()) {
-      setError('Email is required');
-      return;
+      setError('Email is required')
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setIsSubmitted(true);
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+      setIsSubmitted(true)
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to send reset email. Please try again.'
-      );
+        err instanceof Error
+          ? err.message
+          : 'Failed to send reset email. Please try again.',
+      )
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
         <Card className="w-full max-w-md bg-slate-800/50 border-slate-700">
           <CardContent className="pt-6">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4">
                 <CheckCircle2 className="w-8 h-8 text-green-400" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Check Your Email</h2>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Check Your Email
+              </h2>
               <p className="text-slate-400 mb-6">
-                If an account exists with <strong className="text-white">{email}</strong>, you will
+                If an account exists with{' '}
+                <strong className="text-white">{email}</strong>, you will
                 receive a password reset link shortly.
               </p>
               <div className="space-y-3">
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setIsSubmitted(false);
-                    setEmail('');
+                    setIsSubmitted(false)
+                    setEmail('')
                   }}
                   className="w-full"
                 >
@@ -80,24 +98,28 @@ function ForgotPasswordPage() {
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-cyan-500/10 mb-4">
             <Building2 className="w-8 h-8 text-cyan-400" />
           </div>
           <h1 className="text-3xl font-bold text-white">Forgot Password</h1>
-          <p className="text-slate-400 mt-2">Enter your email to receive a reset link</p>
+          <p className="text-slate-400 mt-2">
+            Enter your email to receive a reset link
+          </p>
         </div>
 
         <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader>
             <CardTitle className="text-white">Reset Password</CardTitle>
-            <CardDescription>Enter the email associated with your account</CardDescription>
+            <CardDescription>
+              Enter the email associated with your account
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {error && (
@@ -155,5 +177,5 @@ function ForgotPasswordPage() {
         </p>
       </div>
     </div>
-  );
+  )
 }

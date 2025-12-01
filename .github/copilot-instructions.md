@@ -132,9 +132,9 @@ from app.shared.models import TenantBaseModel
 
 class Employee(TenantBaseModel):
     """Employee model - automatically scoped to tenant."""
-    
+
     __tablename__ = "employees"
-    
+
     # tenant_id is inherited and auto-set
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     # ... other fields
@@ -166,7 +166,7 @@ from app.modules.employees.models import Employee
 
 class EmployeeRepository(TenantRepository[Employee]):
     model = Employee
-    
+
     async def get_by_email(self, email: str) -> Employee | None:
         result = await self.session.execute(
             self._apply_tenant_filter(  # ← Automatically filters by tenant_id
@@ -205,24 +205,24 @@ from app.shared.models import TenantBaseModel
 
 class Department(TenantBaseModel):
     """Department model."""
-    
+
     __tablename__ = "departments"
-    
+
     # Use Mapped[] for all columns
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     code: Mapped[str] = mapped_column(String(20), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    
+
     # Optional fields use Mapped[X | None]
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    
+
     # Foreign keys
     parent_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("departments.id"),
         nullable=True,
     )
-    
+
     # Relationships
     parent: Mapped["Department | None"] = relationship(
         "Department",
@@ -239,7 +239,7 @@ from app.shared.schemas import BaseSchema, TenantEntitySchema
 
 class EmployeeCreate(BaseSchema):
     """Schema for creating an employee."""
-    
+
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
@@ -248,7 +248,7 @@ class EmployeeCreate(BaseSchema):
 
 class EmployeeUpdate(BaseSchema):
     """Schema for updating - all fields optional."""
-    
+
     first_name: str | None = Field(default=None, max_length=100)
     last_name: str | None = Field(default=None, max_length=100)
     # ... other optional fields
@@ -256,7 +256,7 @@ class EmployeeUpdate(BaseSchema):
 
 class EmployeeResponse(TenantEntitySchema):
     """Response schema - includes id, tenant_id, timestamps."""
-    
+
     first_name: str
     last_name: str
     email: str
@@ -273,25 +273,25 @@ from app.core.exceptions import EntityNotFoundError, EntityAlreadyExistsError
 
 class EmployeeService:
     """Service for employee operations."""
-    
+
     def __init__(self, session: AsyncSession, tenant_id: str):
         self.session = session
         self.tenant_id = tenant_id
         self.repo = EmployeeRepository(session, tenant_id)
-    
+
     async def create_employee(self, data: EmployeeCreate) -> Employee:
         """Create a new employee."""
         # Business rule: Check for duplicate email
         existing = await self.repo.get_by_email(data.email)
         if existing:
             raise EntityAlreadyExistsError("Employee", data.email)
-        
+
         employee = Employee(
             tenant_id=self.tenant_id,
             **data.model_dump(),
         )
         return await self.repo.create(employee)
-    
+
     async def get_employee(self, employee_id: str) -> Employee:
         """Get employee by ID or raise."""
         return await self.repo.get_by_id_or_raise(employee_id)
@@ -527,7 +527,7 @@ class TestEmployees:
             json={"first_name": "John", "last_name": "Doe", "email": "john@example.com"},
             headers=get_auth_headers(test_user, test_tenant),
         )
-        
+
         assert response.status_code == 201
         data = response.json()
         assert data["first_name"] == "John"
@@ -641,7 +641,7 @@ async def update_employee(self, id: str, data: EmployeeUpdate) -> Employee:
 ```python
 class TenantSettings(TenantBaseModel):
     __tablename__ = "tenant_settings"
-    
+
     category: Mapped[str] = mapped_column(String(50), nullable=False)
     settings: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
 ```

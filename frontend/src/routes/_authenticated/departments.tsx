@@ -1,48 +1,52 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
-import { Building2, ChevronRight, Plus, Search } from 'lucide-react';
-import type { DepartmentSummary } from '@/lib/api/types';
-import { departmentService } from '@/lib/api';
+import { createFileRoute } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { Building2, ChevronRight, Plus, Search } from 'lucide-react'
+import type { DepartmentSummary } from '@/lib/api/types'
+import { departmentService } from '@/lib/api'
 
 export const Route = createFileRoute('/_authenticated/departments')({
   component: DepartmentsPage,
-});
+})
 
 function DepartmentsPage() {
-  const [departments, setDepartments] = useState<Array<DepartmentSummary>>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [departments, setDepartments] = useState<Array<DepartmentSummary>>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
-        const data = await departmentService.list(1, 100);
-        setDepartments(data.items);
+        const data = await departmentService.list(1, 100)
+        setDepartments(data.items)
       } catch (err) {
-        setError('Failed to load departments');
-        console.error(err);
+        setError('Failed to load departments')
+        console.error(err)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   const filteredDepartments = departments.filter(
     (dept) =>
       dept.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      dept.code.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      dept.code.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">Departments</h1>
-          <p className="text-slate-400 mt-1">{departments.length} departments</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">
+            Departments
+          </h1>
+          <p className="text-slate-400 mt-1">
+            {departments.length} departments
+          </p>
         </div>
         <button className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition-colors">
           <Plus className="w-5 h-5" />
@@ -90,8 +94,12 @@ function DepartmentsPage() {
                     <Building2 className="w-6 h-6 text-cyan-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">{dept.name}</h3>
-                    <p className="text-sm text-slate-400 font-mono">{dept.code}</p>
+                    <h3 className="text-lg font-semibold text-white">
+                      {dept.name}
+                    </h3>
+                    <p className="text-sm text-slate-400 font-mono">
+                      {dept.code}
+                    </p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-cyan-400 transition-colors" />
@@ -101,5 +109,5 @@ function DepartmentsPage() {
         </div>
       )}
     </div>
-  );
+  )
 }

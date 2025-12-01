@@ -62,7 +62,7 @@ export function NavGroup({ title, items }: NavGroupProps) {
 }
 
 function NavBadge({ children }: { children: ReactNode }) {
-  return <Badge className='rounded-full px-1 py-0 text-xs'>{children}</Badge>
+  return <Badge className="rounded-full px-1 py-0 text-xs">{children}</Badge>
 }
 
 function SidebarMenuLink({ item, href }: { item: NavLink; href: string }) {
@@ -96,7 +96,7 @@ function SidebarMenuCollapsible({
     <Collapsible
       asChild
       defaultOpen={checkIsActive(href, item, true)}
-      className='group/collapsible'
+      className="group/collapsible"
     >
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
@@ -104,7 +104,7 @@ function SidebarMenuCollapsible({
             {item.icon && <item.icon />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
-            <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+            <ChevronRight className="ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
           </SidebarMenuButton>
         </CollapsibleTrigger>
         <CollapsibleContent>

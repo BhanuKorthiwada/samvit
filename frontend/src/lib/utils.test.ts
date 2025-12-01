@@ -53,13 +53,13 @@ describe('cn utility', () => {
   describe('object syntax', () => {
     it('includes classes with truthy values', () => {
       expect(cn({ 'text-red-500': true, 'bg-white': true })).toBe(
-        'text-red-500 bg-white'
+        'text-red-500 bg-white',
       )
     })
 
     it('excludes classes with falsy values', () => {
       expect(cn({ 'text-red-500': true, 'bg-white': false })).toBe(
-        'text-red-500'
+        'text-red-500',
       )
     })
   })
@@ -71,7 +71,7 @@ describe('cn utility', () => {
 
     it('handles mixed array and string', () => {
       expect(cn('base', ['px-4', 'py-2'], 'text-center')).toBe(
-        'base px-4 py-2 text-center'
+        'base px-4 py-2 text-center',
       )
     })
   })

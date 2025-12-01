@@ -1,16 +1,18 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { Calendar, FileText, TrendingUp, Wallet } from 'lucide-react';
+import { createFileRoute } from '@tanstack/react-router'
+import { Calendar, FileText, TrendingUp, Wallet } from 'lucide-react'
 
 export const Route = createFileRoute('/_authenticated/payroll')({
   component: PayrollPage,
-});
+})
 
 function PayrollPage() {
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-white">Payroll</h1>
-        <p className="text-slate-400 mt-1">View your salary details and payslips</p>
+        <p className="text-slate-400 mt-1">
+          View your salary details and payslips
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -19,7 +21,9 @@ function PayrollPage() {
             <div className="p-2 bg-green-500/10 rounded-lg">
               <Wallet className="w-5 h-5 text-green-400" />
             </div>
-            <span className="text-slate-400 text-sm font-medium">Net Salary</span>
+            <span className="text-slate-400 text-sm font-medium">
+              Net Salary
+            </span>
           </div>
           <p className="text-2xl font-bold text-white">₹ --,---</p>
           <p className="text-xs text-slate-500 mt-1">Last month</p>
@@ -30,7 +34,9 @@ function PayrollPage() {
             <div className="p-2 bg-cyan-500/10 rounded-lg">
               <TrendingUp className="w-5 h-5 text-cyan-400" />
             </div>
-            <span className="text-slate-400 text-sm font-medium">Gross Salary</span>
+            <span className="text-slate-400 text-sm font-medium">
+              Gross Salary
+            </span>
           </div>
           <p className="text-2xl font-bold text-white">₹ --,---</p>
           <p className="text-xs text-slate-500 mt-1">Monthly</p>
@@ -41,7 +47,9 @@ function PayrollPage() {
             <div className="p-2 bg-red-500/10 rounded-lg">
               <FileText className="w-5 h-5 text-red-400" />
             </div>
-            <span className="text-slate-400 text-sm font-medium">Deductions</span>
+            <span className="text-slate-400 text-sm font-medium">
+              Deductions
+            </span>
           </div>
           <p className="text-2xl font-bold text-white">₹ --,---</p>
           <p className="text-xs text-slate-500 mt-1">This month</p>
@@ -66,7 +74,9 @@ function PayrollPage() {
         <div className="flex flex-col items-center justify-center py-16 text-slate-400">
           <FileText className="w-16 h-16 mb-4" />
           <p className="text-lg font-medium">No payslips available</p>
-          <p className="text-sm">Your payslips will appear here once generated</p>
+          <p className="text-sm">
+            Your payslips will appear here once generated
+          </p>
         </div>
       </div>
 
@@ -82,5 +92,5 @@ function PayrollPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -234,7 +234,7 @@ export const Route = createFileRoute('/employees/')({
 
 function EmployeesPage() {
   const employees = Route.useLoaderData()
-  
+
   return (
     <ul>
       {employees.map((employee) => (
@@ -266,9 +266,9 @@ function useEmployees() {
 // Create employee mutation
 function useCreateEmployee() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
-    mutationFn: (data: CreateEmployeeInput) => 
+    mutationFn: (data: CreateEmployeeInput) =>
       apiClient.post('/employees', data),
     onSuccess: () => {
       // Invalidate and refetch employees list
@@ -281,10 +281,10 @@ function useCreateEmployee() {
 function EmployeesPage() {
   const { data: employees, isLoading, error } = useEmployees()
   const createEmployee = useCreateEmployee()
-  
+
   if (isLoading) return <div>Loading...</div>
   if (error) return <div>Error: {error.message}</div>
-  
+
   return (
     <div>
       <button onClick={() => createEmployee.mutate({ first_name: 'John', last_name: 'Doe' })}>
@@ -360,19 +360,19 @@ import { appStore } from '@/stores/appStore'
 
 function Sidebar() {
   const sidebarOpen = useStore(appStore, (state) => state.sidebarOpen)
-  
+
   if (!sidebarOpen) return null
-  
+
   return <aside>Sidebar content</aside>
 }
 
 function ToggleButton() {
   return (
     <button
-      onClick={() => 
-        appStore.setState((prev) => ({ 
-          ...prev, 
-          sidebarOpen: !prev.sidebarOpen 
+      onClick={() =>
+        appStore.setState((prev) => ({
+          ...prev,
+          sidebarOpen: !prev.sidebarOpen
         }))
       }
     >
@@ -398,7 +398,7 @@ const cartStore = new Store({
 
 // Derived state for total
 const cartTotalStore = new Derived({
-  fn: () => 
+  fn: () =>
     cartStore.state.items.reduce(
       (total, item) => total + item.price * item.quantity,
       0
@@ -534,7 +534,7 @@ function EmployeeForm({ onSubmit }: { onSubmit: (data: EmployeeFormData) => void
           <p className="text-sm text-destructive">{errors.firstName.message}</p>
         )}
       </div>
-      
+
       <div>
         <Label htmlFor="lastName">Last Name</Label>
         <Input id="lastName" {...register('lastName')} />
@@ -542,7 +542,7 @@ function EmployeeForm({ onSubmit }: { onSubmit: (data: EmployeeFormData) => void
           <p className="text-sm text-destructive">{errors.lastName.message}</p>
         )}
       </div>
-      
+
       <div>
         <Label htmlFor="email">Email</Label>
         <Input id="email" type="email" {...register('email')} />
@@ -550,7 +550,7 @@ function EmployeeForm({ onSubmit }: { onSubmit: (data: EmployeeFormData) => void
           <p className="text-sm text-destructive">{errors.email.message}</p>
         )}
       </div>
-      
+
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Saving...' : 'Save Employee'}
       </Button>
@@ -680,7 +680,7 @@ function EmployeesTable({ data }) {
           ))}
         </tbody>
       </table>
-      
+
       {/* Pagination */}
       <div className="flex gap-2">
         <Button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
@@ -740,7 +740,7 @@ import { useTheme } from 'next-themes'
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme()
-  
+
   return (
     <Button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
       Toggle Theme
@@ -770,7 +770,7 @@ describe('Button', () => {
   it('calls onClick when clicked', () => {
     const handleClick = vi.fn()
     render(<Button onClick={handleClick}>Click me</Button>)
-    
+
     fireEvent.click(screen.getByText('Click me'))
     expect(handleClick).toHaveBeenCalledTimes(1)
   })
@@ -823,7 +823,7 @@ server.use(
 
 test('displays employees', async () => {
   renderWithProviders(<EmployeesList />)
-  
+
   expect(await screen.findByText('John Doe')).toBeInTheDocument()
 })
 ```

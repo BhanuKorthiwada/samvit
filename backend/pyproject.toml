@@ -46,6 +46,7 @@ dev = "fastapi:dev app/main.py"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
+pythonpath = ["."]
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::pytest.PytestReturnNotNoneWarning",

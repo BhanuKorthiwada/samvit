@@ -1,0 +1,54 @@
+# Pre-commit hooks configuration for SAMVIT HRMS
+# Run `pre-commit install` to set up the git hooks
+# Run `pre-commit run --all-files` to run all hooks on all files
+
+repos:
+  # General hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.svg$'
+      - id: end-of-file-fixer
+        exclude: '\.svg$'
+      - id: check-yaml
+      - id: check-json
+        exclude: '(tsconfig.*\.json|\.vscode/.*\.json)$'
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # Python - Ruff (linting and formatting)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^backend/
+      - id: ruff-format
+        files: ^backend/
+
+  # Frontend - ESLint and Prettier via local hooks
+  - repo: local
+    hooks:
+      - id: frontend-lint
+        name: Frontend ESLint
+        entry: bash -c 'cd frontend && pnpm lint:fix'
+        language: system
+        files: ^frontend/src/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: false
+
+      - id: frontend-format
+        name: Frontend Prettier
+        entry: bash -c 'cd frontend && pnpm format'
+        language: system
+        files: ^frontend/src/.*\.(ts|tsx|js|jsx|css|json|md)$
+        pass_filenames: false
+
+      - id: frontend-typecheck
+        name: Frontend TypeScript Check
+        entry: bash -c 'cd frontend && pnpm typecheck'
+        language: system
+        files: ^frontend/src/.*\.(ts|tsx)$
+        pass_filenames: false

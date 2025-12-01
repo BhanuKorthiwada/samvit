@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { createFileRoute } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import {
   AlertCircle,
   Calendar,
@@ -8,12 +8,22 @@ import {
   FileText,
   Plus,
   X,
-} from 'lucide-react';
-import type { LeaveBalanceResponse, LeavePolicyResponse, LeaveRequestResponse } from '@/lib/api/types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from 'lucide-react'
+import type {
+  LeaveBalanceResponse,
+  LeavePolicyResponse,
+  LeaveRequestResponse,
+} from '@/lib/api/types'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
@@ -21,144 +31,150 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { leaveBalanceService, leavePolicyService, leaveRequestService } from '@/lib/api';
+} from '@/components/ui/dialog'
+import {
+  leaveBalanceService,
+  leavePolicyService,
+  leaveRequestService,
+} from '@/lib/api'
 
 export const Route = createFileRoute('/_authenticated/leave')({
   component: LeavePage,
-});
+})
 
 function LeavePage() {
-  const [balances, setBalances] = useState<Array<LeaveBalanceResponse>>([]);
-  const [requests, setRequests] = useState<Array<LeaveRequestResponse>>([]);
-  const [policies, setPolicies] = useState<Array<LeavePolicyResponse>>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [isApplyOpen, setIsApplyOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [balances, setBalances] = useState<Array<LeaveBalanceResponse>>([])
+  const [requests, setRequests] = useState<Array<LeaveRequestResponse>>([])
+  const [policies, setPolicies] = useState<Array<LeavePolicyResponse>>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [isApplyOpen, setIsApplyOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Apply leave form state
-  const [selectedPolicy, setSelectedPolicy] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [reason, setReason] = useState('');
-  const [formError, setFormError] = useState('');
+  const [selectedPolicy, setSelectedPolicy] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [reason, setReason] = useState('')
+  const [formError, setFormError] = useState('')
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   const fetchData = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
       const [balanceData, requestData, policyData] = await Promise.all([
         leaveBalanceService.getMyBalances().catch(() => []),
         leaveRequestService.getMyRequests().catch(() => []),
         leavePolicyService.list().catch(() => []),
-      ]);
+      ])
 
-      setBalances(balanceData);
-      setRequests(requestData);
-      setPolicies(policyData);
+      setBalances(balanceData)
+      setRequests(requestData)
+      setPolicies(policyData)
     } catch (err) {
-      setError('Failed to load leave data');
-      console.error(err);
+      setError('Failed to load leave data')
+      console.error(err)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleApplyLeave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError('');
+    e.preventDefault()
+    setFormError('')
 
     if (!selectedPolicy) {
-      setFormError('Please select a leave type');
-      return;
+      setFormError('Please select a leave type')
+      return
     }
     if (!startDate || !endDate) {
-      setFormError('Please select start and end dates');
-      return;
+      setFormError('Please select start and end dates')
+      return
     }
     if (!reason.trim()) {
-      setFormError('Please provide a reason');
-      return;
+      setFormError('Please provide a reason')
+      return
     }
 
-    setIsSubmitting(true);
+    setIsSubmitting(true)
     try {
       await leaveRequestService.create({
         policy_id: selectedPolicy,
         start_date: startDate,
         end_date: endDate,
         reason: reason.trim(),
-      });
+      })
 
-      setIsApplyOpen(false);
-      setSelectedPolicy('');
-      setStartDate('');
-      setEndDate('');
-      setReason('');
-      fetchData();
+      setIsApplyOpen(false)
+      setSelectedPolicy('')
+      setStartDate('')
+      setEndDate('')
+      setReason('')
+      fetchData()
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Failed to submit leave request');
+      setFormError(
+        err instanceof Error ? err.message : 'Failed to submit leave request',
+      )
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const handleCancelRequest = async (requestId: string) => {
     try {
-      await leaveRequestService.cancel(requestId);
-      fetchData();
+      await leaveRequestService.cancel(requestId)
+      fetchData()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to cancel request');
+      setError(err instanceof Error ? err.message : 'Failed to cancel request')
     }
-  };
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-500/10 text-green-400';
+        return 'bg-green-500/10 text-green-400'
       case 'pending':
-        return 'bg-yellow-500/10 text-yellow-400';
+        return 'bg-yellow-500/10 text-yellow-400'
       case 'rejected':
-        return 'bg-red-500/10 text-red-400';
+        return 'bg-red-500/10 text-red-400'
       case 'cancelled':
       case 'withdrawn':
-        return 'bg-slate-500/10 text-slate-400';
+        return 'bg-slate-500/10 text-slate-400'
       default:
-        return 'bg-slate-500/10 text-slate-400';
+        return 'bg-slate-500/10 text-slate-400'
     }
-  };
+  }
 
   const getLeaveTypeColor = (type: string) => {
     switch (type) {
       case 'casual':
-        return 'bg-blue-500/10 text-blue-400';
+        return 'bg-blue-500/10 text-blue-400'
       case 'sick':
-        return 'bg-red-500/10 text-red-400';
+        return 'bg-red-500/10 text-red-400'
       case 'earned':
-        return 'bg-green-500/10 text-green-400';
+        return 'bg-green-500/10 text-green-400'
       case 'maternity':
       case 'paternity':
-        return 'bg-purple-500/10 text-purple-400';
+        return 'bg-purple-500/10 text-purple-400'
       default:
-        return 'bg-cyan-500/10 text-cyan-400';
+        return 'bg-cyan-500/10 text-cyan-400'
     }
-  };
+  }
 
   const getPolicyName = (policyId: string) => {
-    const policy = policies.find((p) => p.id === policyId);
-    return policy?.name || 'Unknown';
-  };
+    const policy = policies.find((p) => p.id === policyId)
+    return policy?.name || 'Unknown'
+  }
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-8 h-8 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
       </div>
-    );
+    )
   }
 
   return (
@@ -166,8 +182,12 @@ function LeavePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">Leave Management</h1>
-          <p className="text-slate-400 mt-1">Apply for leave and track your requests</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">
+            Leave Management
+          </h1>
+          <p className="text-slate-400 mt-1">
+            Apply for leave and track your requests
+          </p>
         </div>
         <Dialog open={isApplyOpen} onOpenChange={setIsApplyOpen}>
           <DialogTrigger asChild>
@@ -179,7 +199,9 @@ function LeavePage() {
           <DialogContent className="bg-slate-800 border-slate-700">
             <DialogHeader>
               <DialogTitle className="text-white">Apply for Leave</DialogTitle>
-              <DialogDescription>Submit a new leave request for approval</DialogDescription>
+              <DialogDescription>
+                Submit a new leave request for approval
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleApplyLeave} className="space-y-4 mt-4">
               {formError && (
@@ -251,7 +273,11 @@ function LeavePage() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting} className="flex-1">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1"
+                >
                   {isSubmitting ? 'Submitting...' : 'Submit Request'}
                 </Button>
               </div>
@@ -272,7 +298,9 @@ function LeavePage() {
 
       {/* Leave Balances */}
       <div>
-        <h2 className="text-lg font-semibold text-white mb-4">Leave Balances</h2>
+        <h2 className="text-lg font-semibold text-white mb-4">
+          Leave Balances
+        </h2>
         {balances.length === 0 ? (
           <Card className="bg-slate-800 border-slate-700">
             <CardContent className="py-8">
@@ -293,8 +321,12 @@ function LeavePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold text-white">{balance.available}</span>
-                    <span className="text-sm text-slate-500">/ {balance.opening_balance + balance.credited}</span>
+                    <span className="text-3xl font-bold text-white">
+                      {balance.available}
+                    </span>
+                    <span className="text-sm text-slate-500">
+                      / {balance.opening_balance + balance.credited}
+                    </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
                     Used: {balance.used} | Pending: {balance.pending}
@@ -317,7 +349,9 @@ function LeavePage() {
             <div className="flex flex-col items-center justify-center py-12 text-slate-400">
               <FileText className="w-16 h-16 mb-4" />
               <p className="text-lg font-medium">No leave requests</p>
-              <p className="text-sm">Apply for leave to see your requests here</p>
+              <p className="text-sm">
+                Apply for leave to see your requests here
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -355,8 +389,8 @@ function LeavePage() {
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-slate-500" />
                           <span>
-                            {new Date(request.start_date).toLocaleDateString()} -{' '}
-                            {new Date(request.end_date).toLocaleDateString()}
+                            {new Date(request.start_date).toLocaleDateString()}{' '}
+                            - {new Date(request.end_date).toLocaleDateString()}
                           </span>
                         </div>
                       </td>
@@ -394,5 +428,5 @@ function LeavePage() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
