@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { authService } from '@/lib/api';
 
 export const Route = createFileRoute('/signup')({
   beforeLoad: () => {
@@ -148,20 +149,16 @@ function SignupPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Call signup API when backend endpoint is ready
-      // await signupService.createCompany({
-      //   company_name: formData.company_name,
-      //   domain: `${formData.domain}.${baseDomain}`,
-      //   company_email: formData.company_email,
-      //   company_phone: formData.company_phone,
-      //   first_name: formData.first_name,
-      //   last_name: formData.last_name,
-      //   email: formData.email,
-      //   password: formData.password,
-      // });
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await authService.registerCompany({
+        company_name: formData.company_name,
+        subdomain: formData.domain,
+        company_email: formData.company_email,
+        company_phone: formData.company_phone || undefined,
+        admin_email: formData.email,
+        admin_password: formData.password,
+        admin_first_name: formData.first_name,
+        admin_last_name: formData.last_name,
+      });
 
       setStep('success');
     } catch (err) {
@@ -223,11 +220,10 @@ function SignupPage() {
         <div className="flex items-center justify-center gap-4 mb-8">
           <div className="flex items-center gap-2">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                step === 'company'
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'company'
                   ? 'bg-cyan-500 text-white'
                   : 'bg-cyan-500/20 text-cyan-400'
-              }`}
+                }`}
             >
               1
             </div>
@@ -236,11 +232,10 @@ function SignupPage() {
           <div className="w-12 h-0.5 bg-slate-700" />
           <div className="flex items-center gap-2">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                step === 'admin'
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'admin'
                   ? 'bg-cyan-500 text-white'
                   : 'bg-slate-700 text-slate-400'
-              }`}
+                }`}
             >
               2
             </div>

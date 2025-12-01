@@ -10,6 +10,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
 from app.core.config import settings
+from app.core.exceptions import AuthorizationError
 
 # Type alias for token types
 TokenType = Literal["access", "refresh"]
@@ -266,3 +267,78 @@ async def get_current_user_optional(
 CurrentUserId = Annotated[str, Depends(get_current_user_id)]
 CurrentUser = Annotated[UserContext, Depends(get_current_user)]
 OptionalUserId = Annotated[str | None, Depends(get_current_user_optional)]
+
+
+# --- Role-Based Access Control ---
+
+
+def require_roles(allowed_roles: list[str]):
+    """
+    Dependency factory that requires user to have one of the allowed roles.
+
+    Usage:
+        @router.get("/admin-only")
+        async def admin_endpoint(
+            user: CurrentUser,
+            _: Annotated[None, Depends(require_roles(["super_admin", "admin"]))],
+        ):
+            ...
+    """
+
+    async def role_checker(
+        request: Request,
+        credentials: Annotated[
+            HTTPAuthorizationCredentials | None, Depends(security)
+        ],
+    ) -> None:
+        from sqlalchemy import select
+
+        from app.core.database import async_session_maker
+        from app.modules.auth.models import Role, User, user_roles
+
+        payload = _get_validated_payload(credentials)
+        await _check_token_revoked(credentials.credentials, payload)
+
+        user_id = payload["sub"]
+
+        async with async_session_maker() as session:
+            result = await session.execute(
+                select(Role.name)
+                .join(user_roles, user_roles.c.role_id == Role.id)
+                .where(user_roles.c.user_id == user_id)
+            )
+            user_role_names = [row[0] for row in result.fetchall()]
+
+        if not any(role in allowed_roles for role in user_role_names):
+            raise AuthorizationError(
+                f"Access denied. Required roles: {', '.join(allowed_roles)}"
+            )
+
+    return role_checker
+
+
+def require_super_admin():
+    """Dependency that requires super_admin role (platform admin)."""
+    return require_roles(["super_admin"])
+
+
+def require_tenant_admin():
+    """Dependency that requires admin or super_admin role."""
+    return require_roles(["super_admin", "admin"])
+
+
+def require_hr():
+    """Dependency that requires HR role (hr_manager, hr_staff, admin, or super_admin)."""
+    return require_roles(["super_admin", "admin", "hr_manager", "hr_staff"])
+
+
+def require_manager():
+    """Dependency that requires manager or higher role."""
+    return require_roles(["super_admin", "admin", "hr_manager", "manager"])
+
+
+# Convenience type aliases for common role checks
+RequireSuperAdmin = Annotated[None, Depends(require_super_admin())]
+RequireTenantAdmin = Annotated[None, Depends(require_tenant_admin())]
+RequireHR = Annotated[None, Depends(require_hr())]
+RequireManager = Annotated[None, Depends(require_manager())]

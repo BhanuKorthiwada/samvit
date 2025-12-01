@@ -4,6 +4,8 @@
 
 import type {
   ChangePasswordRequest,
+  CompanyRegisterRequest,
+  CompanyRegisterResponse,
   CurrentUserResponse,
   LoginRequest,
   PaginatedResponse,
@@ -17,10 +19,24 @@ import apiClient from '@/lib/api/client';
 
 export const authService = {
   /**
-   * Register a new user
+   * Register a new user (within existing tenant)
    */
   async register(data: RegisterRequest): Promise<UserResponse> {
     return apiClient.post<UserResponse>('/auth/register', data);
+  },
+
+  /**
+   * Register a new company (creates tenant + admin user)
+   * This is the company signup flow.
+   */
+  async registerCompany(data: CompanyRegisterRequest): Promise<CompanyRegisterResponse> {
+    const response = await apiClient.post<CompanyRegisterResponse>('/auth/register/company', data);
+
+    // Store tokens after successful registration
+    localStorage.setItem('access_token', response.access_token);
+    localStorage.setItem('refresh_token', response.refresh_token);
+
+    return response;
   },
 
   /**
@@ -28,11 +44,11 @@ export const authService = {
    */
   async login(data: LoginRequest): Promise<TokenResponse> {
     const response = await apiClient.post<TokenResponse>('/auth/login', data);
-    
+
     // Store tokens
     localStorage.setItem('access_token', response.access_token);
     localStorage.setItem('refresh_token', response.refresh_token);
-    
+
     return response;
   },
 
@@ -52,15 +68,15 @@ export const authService = {
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }
-    
+
     const response = await apiClient.post<TokenResponse>('/auth/refresh', {
       refresh_token: refreshToken,
     });
-    
+
     // Update stored tokens
     localStorage.setItem('access_token', response.access_token);
     localStorage.setItem('refresh_token', response.refresh_token);
-    
+
     return response;
   },
 

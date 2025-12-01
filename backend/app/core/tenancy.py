@@ -55,24 +55,24 @@ class TenantMiddleware(BaseHTTPMiddleware):
         "/api/docs",
         "/api/redoc",
         "/api/openapi.json",
-        # Platform-level admin endpoints (manage all tenants)
-        "/api/v1/tenants",
+        "/api/v1/platform",
     }
 
     # Paths where tenant is optional (resolved if present, but not required)
     OPTIONAL_TENANT_PATHS = {
-        "/api/v1/auth/register/company",  # Creates a new tenant
+        "/api/v1/auth/register/company",
+        "/api/v1/tenants/info",
     }
 
     def _is_exempt_path(self, path: str) -> bool:
         """Check if path is exempt from tenant requirement."""
         if path in self.EXEMPT_PATHS:
             return True
-        # Check path prefixes
+        if path in self.OPTIONAL_TENANT_PATHS:
+            return True
         if path.startswith("/api/docs"):
             return True
-        # Platform admin tenant management
-        if path.startswith("/api/v1/tenants"):
+        if path.startswith("/api/v1/platform"):
             return True
         return False
 

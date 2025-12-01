@@ -42,6 +42,7 @@ from app.modules.employees.routes import (
 )
 from app.modules.leave.routes import router as leave_router
 from app.modules.payroll.routes import router as payroll_router
+from app.modules.platform.routes import router as platform_router
 from app.modules.tenants.routes import router as tenants_router
 from app.modules.tenants.settings_routes import router as tenant_settings_router
 
@@ -83,8 +84,9 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:
 # OpenAPI tags for better organization
 OPENAPI_TAGS = [
     {"name": "Health", "description": "Health check endpoints"},
+    {"name": "Platform Admin", "description": "Platform-level administration (super_admin only)"},
     {"name": "Auth", "description": "Authentication and authorization"},
-    {"name": "Tenants", "description": "Multi-tenant organization management"},
+    {"name": "Tenants", "description": "Public tenant information"},
     {
         "name": "Tenant Settings",
         "description": "Tenant-level customizations and preferences",
@@ -260,6 +262,7 @@ async def unhandled_exception_handler(
 # --- API Routers ---
 API_V1_PREFIX = "/api/v1"
 
+app.include_router(platform_router, prefix=API_V1_PREFIX)
 app.include_router(auth_router, prefix=API_V1_PREFIX)
 app.include_router(users_router, prefix=API_V1_PREFIX)
 app.include_router(tenants_router, prefix=API_V1_PREFIX)

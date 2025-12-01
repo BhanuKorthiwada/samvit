@@ -13,4 +13,5 @@ export {
   leaveRequestService,
   holidayService,
 } from './services/leave';
-export { tenantService } from './services/tenant';
+export { tenantService, platformTenantService } from './services/tenant';
+export { aiService } from './services/ai';

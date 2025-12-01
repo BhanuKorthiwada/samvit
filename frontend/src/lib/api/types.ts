@@ -55,6 +55,29 @@ export interface TokenResponse {
   expires_in: number;
 }
 
+export interface CompanyRegisterRequest {
+  company_name: string;
+  subdomain: string;
+  company_email: string;
+  company_phone?: string;
+  admin_email: string;
+  admin_password: string;
+  admin_first_name: string;
+  admin_last_name: string;
+  timezone?: string;
+  country?: string;
+}
+
+export interface CompanyRegisterResponse {
+  tenant_id: string;
+  tenant_domain: string;
+  user_id: string;
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
+}
+
 export interface CurrentUserResponse {
   id: string;
   email: string;
@@ -768,4 +791,34 @@ export interface CompanySignupRequest {
   last_name: string;
   email: string;
   password: string;
+}
+
+// ============ AI Assistant Types ============
+
+export interface ChatRequest {
+  message: string;
+  conversation_id?: string;
+}
+
+export interface ChatResponse {
+  message: string;
+  follow_up_questions?: Array<string>;
+  data?: Record<string, unknown>;
+  conversation_id?: string;
+}
+
+export interface AgentInfo {
+  id: string;
+  name: string;
+  description: string;
+  capabilities: Array<string>;
+}
+
+export interface SuggestedPromptCategory {
+  category: string;
+  suggestions: Array<string>;
+}
+
+export interface SuggestedPromptsResponse {
+  prompts: Array<SuggestedPromptCategory>;
 }

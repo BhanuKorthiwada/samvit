@@ -1,10 +1,12 @@
 services:
   dragonfly:
     image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+    hostname: dragonfly
+    container_name: samvit-dragonfly
     ulimits:
       memlock: -1
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - dragonflydata:/data
     networks:
@@ -12,38 +14,47 @@ services:
 
   postgres:
     image: postgres:18.1
+    hostname: postgres
+    container_name: samvit-postgres
     environment:
-      POSTGRES_USER: samvituser
-      POSTGRES_PASSWORD: samvitpassword
-      POSTGRES_DB: samvitdb
+      POSTGRES_USER: ${POSTGRES_USER:-samvituser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-samvitpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-samvitdb}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql
     networks:
       - samvit
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-samvituser} -d ${POSTGRES_DB:-samvitdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    hostname: backend
+    container_name: samvit-backend
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite+aiosqlite:///./samvit.db
-      - SECRET_KEY=dev-secret-key-change-in-production
-      - ENVIRONMENT=development
-    volumes:
-      - ./backend:/app
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://samvituser:samvitpassword@postgres:5432/samvitdb}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production-min-32-chars}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DEBUG=${DEBUG:-false}
+      - REDIS_URL=${REDIS_URL:-redis://dragonfly:6379/0}
     networks:
       - samvit
     depends_on:
       dragonfly:
         condition: service_healthy
       postgres:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -52,6 +63,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    hostname: frontend
+    container_name: samvit-frontend
     ports:
       - "3010:80"
     networks:
@@ -59,7 +72,21 @@ services:
     depends_on:
       - backend
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
+
+  # Init container to seed sample tenants
+  init-tenants:
+    image: curlimages/curl:latest
+    container_name: samvit-init-tenants
+    volumes:
+      - ./scripts/init-tenants.sh:/init-tenants.sh:ro
+    entrypoint: ["/bin/sh", "/init-tenants.sh"]
+    networks:
+      - samvit
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: "no"
 
 volumes:
   dragonflydata:
