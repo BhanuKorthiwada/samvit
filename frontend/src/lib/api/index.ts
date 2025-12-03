@@ -19,3 +19,4 @@ export {
 } from './services/leave'
 export { tenantService, platformTenantService } from './services/tenant'
 export { aiService } from './services/ai'
+export { policyService, policyChatService } from './services/policies'

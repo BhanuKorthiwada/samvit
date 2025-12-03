@@ -11,6 +11,7 @@ import {
   Bell,
   Shield,
   BarChart3,
+  FileText,
 } from 'lucide-react'
 import { UserRole } from '@/lib/api/types'
 import { RoleGroups } from '@/lib/rbac'
@@ -107,6 +108,11 @@ export const sidebarData: { navGroups: NavGroup[] } = {
           title: 'AI Assistant',
           url: '/ai-assistant',
           icon: Bot,
+        },
+        {
+          title: 'Policies',
+          url: '/policies',
+          icon: FileText,
         },
       ],
     },

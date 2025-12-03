@@ -822,3 +822,124 @@ export interface SuggestedPromptCategory {
 export interface SuggestedPromptsResponse {
   prompts: Array<SuggestedPromptCategory>
 }
+
+// ============ Policy Types ============
+
+export enum PolicyCategory {
+  GENERAL = 'general',
+  LEAVE = 'leave',
+  ATTENDANCE = 'attendance',
+  CONDUCT = 'conduct',
+  BENEFITS = 'benefits',
+  COMPENSATION = 'compensation',
+  SAFETY = 'safety',
+  IT = 'it',
+  TRAVEL = 'travel',
+  EXPENSE = 'expense',
+  OTHER = 'other',
+}
+
+export enum PolicyStatus {
+  DRAFT = 'draft',
+  ACTIVE = 'active',
+  ARCHIVED = 'archived',
+}
+
+export interface PolicyCreate {
+  name: string
+  description?: string
+  category: PolicyCategory
+  version?: string
+  effective_date?: string
+  expiry_date?: string
+}
+
+export interface PolicyUpdate {
+  name?: string
+  description?: string
+  category?: PolicyCategory
+  status?: PolicyStatus
+  version?: string
+  effective_date?: string
+  expiry_date?: string
+}
+
+export interface PolicyResponse {
+  id: string
+  tenant_id: string
+  created_at: string
+  updated_at: string
+  name: string
+  description: string | null
+  category: string
+  file_path: string
+  file_name: string
+  file_type: string
+  file_size: number
+  status: string
+  version: string
+  is_indexed: boolean
+  indexed_at: string | null
+  chunk_count: number
+  effective_date: string | null
+  expiry_date: string | null
+}
+
+export interface PolicySummary {
+  id: string
+  name: string
+  category: string
+  status: string
+  version: string
+  is_indexed: boolean
+  file_type: string
+  created_at: string
+  updated_at: string
+}
+
+export interface PolicyIndexRequest {
+  policy_ids?: Array<string> | null
+  force?: boolean
+}
+
+export interface PolicyIndexResponse {
+  indexed_count: number
+  total_chunks: number
+  policies: Array<string>
+  errors: Array<string>
+}
+
+export interface PolicyQueryRequest {
+  question: string
+  policy_ids?: Array<string>
+  categories?: Array<PolicyCategory>
+  max_chunks?: number
+}
+
+export interface PolicyQueryResponse {
+  answer: string
+  sources: Array<{
+    policy_name: string
+    category: string
+    relevance: number
+    excerpt?: string
+  }>
+  confidence: string
+  follow_up_questions: Array<string>
+}
+
+export interface PolicyChatRequest {
+  question: string
+  conversation_id?: string
+}
+
+export interface PolicyChatResponse {
+  answer: string
+  sources: Array<{
+    policy_name: string
+    category: string
+    relevance: number
+  }>
+  follow_up_questions?: Array<string>
+  conversation_id?: string
+}

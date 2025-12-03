@@ -17,6 +17,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedPoliciesRouteImport } from './routes/_authenticated/policies'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPayrollRouteImport } from './routes/_authenticated/payroll'
 import { Route as AuthenticatedLeaveRouteImport } from './routes/_authenticated/leave'
@@ -67,6 +68,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPoliciesRoute = AuthenticatedPoliciesRouteImport.update({
+  id: '/policies',
+  path: '/policies',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/leave': typeof AuthenticatedLeaveRoute
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRouteWithChildren
+  '/policies': typeof AuthenticatedPoliciesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/employees/$id': typeof AuthenticatedEmployeesIdRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/employees': typeof AuthenticatedEmployeesRouteWithChildren
   '/leave': typeof AuthenticatedLeaveRoute
   '/payroll': typeof AuthenticatedPayrollRoute
+  '/policies': typeof AuthenticatedPoliciesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/employees/$id': typeof AuthenticatedEmployeesIdRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/_authenticated/leave': typeof AuthenticatedLeaveRoute
   '/_authenticated/payroll': typeof AuthenticatedPayrollRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRouteWithChildren
+  '/_authenticated/policies': typeof AuthenticatedPoliciesRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/employees/$id': typeof AuthenticatedEmployeesIdRoute
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/leave'
     | '/payroll'
     | '/platform'
+    | '/policies'
     | '/profile'
     | '/settings'
     | '/employees/$id'
@@ -236,6 +246,7 @@ export interface FileRouteTypes {
     | '/employees'
     | '/leave'
     | '/payroll'
+    | '/policies'
     | '/profile'
     | '/settings'
     | '/employees/$id'
@@ -258,6 +269,7 @@ export interface FileRouteTypes {
     | '/_authenticated/leave'
     | '/_authenticated/payroll'
     | '/_authenticated/platform'
+    | '/_authenticated/policies'
     | '/_authenticated/profile'
     | '/_authenticated/settings'
     | '/_authenticated/employees/$id'
@@ -331,6 +343,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/policies': {
+      id: '/_authenticated/policies'
+      path: '/policies'
+      fullPath: '/policies'
+      preLoaderRoute: typeof AuthenticatedPoliciesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/platform': {
@@ -474,6 +493,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedLeaveRoute: typeof AuthenticatedLeaveRoute
   AuthenticatedPayrollRoute: typeof AuthenticatedPayrollRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRouteWithChildren
+  AuthenticatedPoliciesRoute: typeof AuthenticatedPoliciesRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
 }
@@ -487,6 +507,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedLeaveRoute: AuthenticatedLeaveRoute,
   AuthenticatedPayrollRoute: AuthenticatedPayrollRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRouteWithChildren,
+  AuthenticatedPoliciesRoute: AuthenticatedPoliciesRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
 }

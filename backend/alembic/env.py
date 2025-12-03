@@ -15,7 +15,7 @@ from app.core.database import Base  # noqa: F401
 # Import all models to ensure they're registered with Base.metadata
 from app.modules.auth.models import User  # noqa: F401
 from app.modules.employees.models import Department, Employee, Position  # noqa: F401
-from app.modules.attendance.models import AttendanceRecord, Shift  # noqa: F401
+from app.modules.attendance.models import Attendance, Shift  # noqa: F401
 from app.modules.leave.models import (  # noqa: F401
     Holiday,
     LeaveBalance,
@@ -30,6 +30,7 @@ from app.modules.payroll.models import (  # noqa: F401
     SalaryStructureComponent,
 )
 from app.modules.tenants.models import Tenant  # noqa: F401
+from app.modules.policies.models import Policy  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

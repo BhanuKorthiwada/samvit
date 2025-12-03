@@ -2,7 +2,7 @@
 
 import asyncio
 import os
-import uuid
+import shutil
 from collections.abc import AsyncGenerator, Generator
 from datetime import datetime, timezone
 from pathlib import Path
@@ -23,6 +23,15 @@ from app.modules.tenants.models import Tenant, TenantStatus
 
 # Base domain for multi-tenancy
 BASE_DOMAIN = "samvit.bhanu.dev"
+
+# Fixed test tenant ID - prevents accumulation of test data
+TEST_TENANT_ID = "00000000-0000-0000-0000-000000000001"
+TEST_USER_ID = "00000000-0000-0000-0000-000000000002"
+TEST_ADMIN_ID = "00000000-0000-0000-0000-000000000003"
+
+# Directories for test data
+POLICIES_DIR = Path("data/policies")
+CHROMA_DIR = Path("data/chroma")
 
 
 @pytest.fixture(scope="session")
@@ -115,9 +124,9 @@ async def client(
 
 @pytest_asyncio.fixture(scope="function")
 async def test_tenant(test_session: AsyncSession) -> Tenant:
-    """Create a test tenant."""
+    """Create a test tenant with fixed ID for consistent test data location."""
     tenant = Tenant(
-        id=str(uuid.uuid4()),
+        id=TEST_TENANT_ID,
         name="Test Company",
         domain=f"test.{BASE_DOMAIN}",
         email="test@example.com",
@@ -132,11 +141,28 @@ async def test_tenant(test_session: AsyncSession) -> Tenant:
     return tenant
 
 
+def cleanup_test_tenant_data() -> None:
+    """Clean up test tenant data. Can be called manually if needed."""
+    # Clean policy files
+    tenant_policy_dir = POLICIES_DIR / TEST_TENANT_ID
+    if tenant_policy_dir.exists():
+        shutil.rmtree(tenant_policy_dir, ignore_errors=True)
+
+    # Clean chroma collection
+    try:
+        from app.ai.rag.vectorstore import PolicyVectorStore
+
+        store = PolicyVectorStore(TEST_TENANT_ID)
+        store.clear()
+    except Exception:
+        pass  # Ignore errors during cleanup
+
+
 @pytest_asyncio.fixture(scope="function")
 async def test_user(test_session: AsyncSession, test_tenant: Tenant) -> User:
-    """Create a test user."""
+    """Create a test user with fixed ID."""
     user = User(
-        id=str(uuid.uuid4()),
+        id=TEST_USER_ID,
         tenant_id=test_tenant.id,
         email="testuser@example.com",
         password_hash=get_password_hash("Test@12345"),
@@ -156,9 +182,9 @@ async def test_user(test_session: AsyncSession, test_tenant: Tenant) -> User:
 
 @pytest_asyncio.fixture(scope="function")
 async def admin_user(test_session: AsyncSession, test_tenant: Tenant) -> User:
-    """Create an admin test user."""
+    """Create an admin test user with fixed ID."""
     user = User(
-        id=str(uuid.uuid4()),
+        id=TEST_ADMIN_ID,
         tenant_id=test_tenant.id,
         email="admin@example.com",
         password_hash=get_password_hash("Admin@12345"),

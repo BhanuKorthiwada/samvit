@@ -43,6 +43,7 @@ from app.modules.employees.routes import (
 from app.modules.leave.routes import router as leave_router
 from app.modules.payroll.routes import router as payroll_router
 from app.modules.platform.routes import router as platform_router
+from app.modules.policies.routes import router as policies_router
 from app.modules.tenants.routes import router as tenants_router
 from app.modules.tenants.settings_routes import router as tenant_settings_router
 
@@ -100,6 +101,7 @@ OPENAPI_TAGS = [
     {"name": "Attendance", "description": "Time tracking and attendance"},
     {"name": "Leave", "description": "Leave policies, requests, and balances"},
     {"name": "Payroll", "description": "Salary structures and payslips"},
+    {"name": "Policies", "description": "Policy document management and RAG queries"},
     {"name": "Audit Logs", "description": "Audit trail and activity logging"},
     {"name": "AI Agents", "description": "AI-powered conversational HR assistant"},
 ]
@@ -276,6 +278,7 @@ app.include_router(employee_router, prefix=API_V1_PREFIX)
 app.include_router(attendance_router, prefix=API_V1_PREFIX)
 app.include_router(leave_router, prefix=API_V1_PREFIX)
 app.include_router(payroll_router, prefix=API_V1_PREFIX)
+app.include_router(policies_router, prefix=API_V1_PREFIX)
 app.include_router(audit_router, prefix=API_V1_PREFIX)
 app.include_router(ai_router, prefix=API_V1_PREFIX)
 

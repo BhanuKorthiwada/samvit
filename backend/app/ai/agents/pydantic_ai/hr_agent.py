@@ -200,7 +200,7 @@ def get_hr_agent() -> Agent[HRAgentDeps, HRAgentResponse]:
         model=settings.ai_model,
         system_prompt=HR_SYSTEM_PROMPT,
         deps_type=HRAgentDeps,
-        result_type=HRAgentResponse,
+        output_type=HRAgentResponse,
         retries=2,
     )
     _register_tools(agent)
@@ -773,8 +773,8 @@ async def process_message(
         )
 
         return (
-            result.data
-            if result.data
+            result.output
+            if result.output
             else HRAgentResponse(
                 message="I processed your request but couldn't generate a proper response.",
                 follow_up_questions=[
